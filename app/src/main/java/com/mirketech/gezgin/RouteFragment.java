@@ -1,13 +1,17 @@
 package com.mirketech.gezgin;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.PermissionChecker;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.PermissionRequest;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -17,6 +21,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+
+import java.security.Permission;
 
 
 /**
@@ -73,12 +79,12 @@ public class RouteFragment extends Fragment {
         (getActivity().findViewById(R.id.fab)).setVisibility(View.GONE);
 
 
-        initMap(v,savedInstanceState);
+        initMap(v, savedInstanceState);
 
         return v;
     }
 
-    private void initMap(View v , Bundle savedInstanceState){
+    private void initMap(View v, Bundle savedInstanceState) {
         mMapView = (MapView) v.findViewById(R.id.mapView);
         mMapView.onCreate(savedInstanceState);
 
@@ -95,10 +101,7 @@ public class RouteFragment extends Fragment {
 
 
         googleMap.getUiSettings().setZoomControlsEnabled(true);
-        googleMap.getUiSettings().setZoomGesturesEnabled(true);
-        googleMap.getUiSettings().setAllGesturesEnabled(true);
-        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
-        googleMap.getUiSettings().setScrollGesturesEnabled(true);
+
 
         // Add a marker in Sydney and move the camera
         LatLng istanbul = new LatLng(41.0003186, 28.859703);
@@ -107,15 +110,14 @@ public class RouteFragment extends Fragment {
 
         googleMap.addMarker(new MarkerOptions().position(istanbul).title("Marker in istanbul"));
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(istanbul));
-        googleMap.animateCamera(CameraUpdateFactory.zoomTo(10),2000,null);
+        googleMap.animateCamera(CameraUpdateFactory.zoomTo(10), 4000, null);
 
         googleMap.addPolyline((new PolylineOptions())
-                .add(istanbul, sakarya));
+                .add(istanbul, sakarya).width(0.8F));
 
         googleMap.setOnPolylineClickListener(new GoogleMap.OnPolylineClickListener() {
             @Override
             public void onPolylineClick(Polyline polyline) {
-
                 int strokeColor = polyline.getColor() ^ 0x00ffffff;
                 polyline.setColor(strokeColor);
             }

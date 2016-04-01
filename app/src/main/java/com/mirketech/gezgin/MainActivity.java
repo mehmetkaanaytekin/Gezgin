@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity
         switch (viewId) {
 
             case R.id.nav_route:
-                title = "Güzergah";
+                title = "Harita";
                 break;
             case R.id.nav_manage:
                 title = "Ayarlar";
