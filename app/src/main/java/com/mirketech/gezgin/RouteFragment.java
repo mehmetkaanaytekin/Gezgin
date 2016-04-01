@@ -3,10 +3,20 @@ package com.mirketech.gezgin;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 
 /**
@@ -18,14 +28,9 @@ import android.view.ViewGroup;
  * create an instance of this fragment.
  */
 public class RouteFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private GoogleMap googleMap;
+    MapView mMapView;
 
     private OnFragmentInteractionListener mListener;
 
@@ -37,37 +42,86 @@ public class RouteFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
      * @return A new instance of fragment RouteFragment.
      */
-    // TODO: Rename and change types and number of parameters
-    public static RouteFragment newInstance(String param1, String param2) {
+    public static RouteFragment newInstance() {
         RouteFragment fragment = new RouteFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+
         fragment.setArguments(args);
         return fragment;
+
+
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+//            mParam1 = getArguments().getString(ARG_PARAM1);
+//            mParam2 = getArguments().getString(ARG_PARAM2);
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_route, container, false);
+        // inflate and return the layout
+        View v = inflater.inflate(R.layout.fragment_route, container,
+                false);
+
+        (getActivity().findViewById(R.id.fab)).setVisibility(View.GONE);
+
+
+        initMap(v,savedInstanceState);
+
+        return v;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
+    private void initMap(View v , Bundle savedInstanceState){
+        mMapView = (MapView) v.findViewById(R.id.mapView);
+        mMapView.onCreate(savedInstanceState);
+
+        mMapView.onResume();// needed to get the map to display immediately
+
+
+        try {
+            MapsInitializer.initialize(getActivity().getApplicationContext());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        googleMap = mMapView.getMap();
+
+
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+        googleMap.getUiSettings().setZoomGesturesEnabled(true);
+        googleMap.getUiSettings().setAllGesturesEnabled(true);
+        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+        googleMap.getUiSettings().setScrollGesturesEnabled(true);
+
+        // Add a marker in Sydney and move the camera
+        LatLng istanbul = new LatLng(41.0003186, 28.859703);
+        LatLng sakarya = new LatLng(40.7606417, 29.7248319);
+
+
+        googleMap.addMarker(new MarkerOptions().position(istanbul).title("Marker in istanbul"));
+        googleMap.moveCamera(CameraUpdateFactory.newLatLng(istanbul));
+        googleMap.animateCamera(CameraUpdateFactory.zoomTo(10),2000,null);
+
+        googleMap.addPolyline((new PolylineOptions())
+                .add(istanbul, sakarya));
+
+        googleMap.setOnPolylineClickListener(new GoogleMap.OnPolylineClickListener() {
+            @Override
+            public void onPolylineClick(Polyline polyline) {
+
+                int strokeColor = polyline.getColor() ^ 0x00ffffff;
+                polyline.setColor(strokeColor);
+            }
+        });
+    }
+
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -102,7 +156,12 @@ public class RouteFragment extends Fragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
+
 }
