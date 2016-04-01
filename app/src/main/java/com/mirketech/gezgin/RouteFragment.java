@@ -1,17 +1,15 @@
 package com.mirketech.gezgin;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.PermissionChecker;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.PermissionRequest;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -21,8 +19,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-
-import java.security.Permission;
 
 
 /**
@@ -34,6 +30,8 @@ import java.security.Permission;
  * create an instance of this fragment.
  */
 public class RouteFragment extends Fragment {
+
+    private static final int REQUEST_CODE_PERMISSION_LOCATION = 4001;
 
     private GoogleMap googleMap;
     MapView mMapView;
@@ -84,6 +82,14 @@ public class RouteFragment extends Fragment {
         return v;
     }
 
+    private void EnableMyLocation() {
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        googleMap.setMyLocationEnabled(true);
+    }
+
     private void initMap(View v, Bundle savedInstanceState) {
         mMapView = (MapView) v.findViewById(R.id.mapView);
         mMapView.onCreate(savedInstanceState);
@@ -101,6 +107,9 @@ public class RouteFragment extends Fragment {
 
 
         googleMap.getUiSettings().setZoomControlsEnabled(true);
+
+
+        EnableMyLocation();
 
 
         // Add a marker in Sydney and move the camera
