@@ -4,5 +4,5 @@
     <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyDINlZdU5fH6D6N25OI2juLaq45qOqHtE8</string>
     <string name="google_app_id">511358652814</string>
 
-    <string name="google_directions_apikey"> AIzaSyDUGe7_WKd1Sq182Iwycghz1ZB3u0cqews</string>
+    <string name="google_directions_apikey">AIzaSyDUGe7_WKd1Sq182Iwycghz1ZB3u0cqews</string>
 </resources>
