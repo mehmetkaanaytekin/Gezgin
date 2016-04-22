@@ -76,7 +76,7 @@ public class DirectionManager {
         sbU.append(DirectionManager.QSTRING_JSON);
         sbU.append(DirectionManager.PARAM_ORIGIN + "=" + origin.latitude + "," + origin.longitude);
         sbU.append("&" + DirectionManager.PARAM_DESTINATION + "=" + dest.latitude + "," + dest.longitude);
-        sbU.append("&" + DirectionManager.PARAM_LANGUAGE + "=" + AppSettings.Language);
+        sbU.append("&" + DirectionManager.PARAM_LANGUAGE + "=" + AppSettings.LANGUAGE);
         sbU.append("&" + DirectionManager.PARAM_APIKEY + "=" + appContext.getString(R.string.google_directions_apikey));
 
 

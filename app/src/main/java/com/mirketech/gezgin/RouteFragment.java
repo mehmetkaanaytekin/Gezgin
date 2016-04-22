@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -13,14 +14,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.maps.android.PolyUtil;
+import com.mirketech.gezgin.util.AppSettings;
 
 
 /**
@@ -38,6 +39,7 @@ public class RouteFragment extends Fragment {
     private GoogleMap googleMap;
     private Marker mMarker;
     private MapView mMapView;
+    private FloatingActionButton mFabAction;
 
     private OnFragmentInteractionListener mListener;
 
@@ -80,7 +82,13 @@ public class RouteFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_route, container,
                 false);
 
-        (getActivity().findViewById(R.id.fab)).setVisibility(View.GONE);
+        mFabAction = (FloatingActionButton)v.findViewById(R.id.fabAction);
+        mFabAction.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG,"FabAction clicked.");
+            }
+        });
 
         initMap(v, savedInstanceState);
 
@@ -89,14 +97,15 @@ public class RouteFragment extends Fragment {
 
     private void EnableMyLocation() {
 
-        Log.d(TAG,"EnableMyLocation");
+        Log.d(TAG, "EnableMyLocation");
 
         if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.d(TAG,"EnableMyLocation permissions");
+            Log.d(TAG, "EnableMyLocation permissions");
             return;
         }
-        Log.d(TAG,"setMyLocationEnabled");
+        Log.d(TAG, "setMyLocationEnabled");
+
         googleMap.setMyLocationEnabled(true);
     }
 
@@ -108,18 +117,18 @@ public class RouteFragment extends Fragment {
 
             LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
 
-            mMarker.remove();
-            mMarker = googleMap.addMarker(new MarkerOptions().position(loc).title("Current Location"));
-
-            if(googleMap != null){
-                googleMap.moveCamera(CameraUpdateFactory.newLatLng(loc));
-                googleMap.animateCamera(CameraUpdateFactory.zoomTo(14), 4000, null);
+            if (mMarker != null) {
+                mMarker.remove();
+            }
+            if (googleMap != null) {
+                CameraUpdate update = CameraUpdateFactory.newLatLngZoom(loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
+                googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
             }
         }
     };
 
     private void initMap(View v, Bundle savedInstanceState) {
-        Log.d(TAG,"initMap");
+        Log.d(TAG, "initMap");
 
         mMapView = (MapView) v.findViewById(R.id.mapView);
         mMapView.onCreate(savedInstanceState);
@@ -135,22 +144,16 @@ public class RouteFragment extends Fragment {
 
         googleMap = mMapView.getMap();
 
-        googleMap.getUiSettings().setZoomControlsEnabled(true);
+        //googleMap.getUiSettings().setZoomControlsEnabled(true);
         googleMap.getUiSettings().setMapToolbarEnabled(false);
 
         googleMap.setOnMyLocationChangeListener(myLocationChangeListener);
 
         EnableMyLocation();
 
-        LatLng istanbul = new LatLng(41.0003186, 28.859703);
-        //LatLng sakarya = new LatLng(40.7606417, 29.7248319);
 
-
-
-        mMarker = googleMap.addMarker(new MarkerOptions().position(istanbul).title("istanbul"));
-
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(istanbul));
-        googleMap.animateCamera(CameraUpdateFactory.zoomTo(8), 4000, null);
+        googleMap.moveCamera(CameraUpdateFactory.newLatLng(AppSettings.MAP_DEFAULT_LOCATION));
+        googleMap.animateCamera(CameraUpdateFactory.zoomTo(AppSettings.CAMERA_DEFAULT_ZOOM_LEVEL), AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
 
 //        googleMap.addPolyline((new PolylineOptions())
 //                .add(istanbul, sakarya).width(0.8F));
