@@ -27,7 +27,6 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 import com.mirketech.gezgin.comm.CommManager;
@@ -57,6 +56,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private GoogleMap googleMap;
     private MapView mMapView;
     private FloatingActionButton mFabAction;
+    private FloatingActionButton mFabClear;
     private LatLng latestMyLocation;
     private OnFragmentInteractionListener mListener;
     private boolean isInterrupted = false;
@@ -153,13 +153,24 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
                 if (latestMyLocation != null) {
 
-
                     DirectionManager.getInstance(getActivity()).GetDirections(latestMyLocation, AppSettings.MAP_DEFAULT_LOCATION);//for testing
 
 
                 }
 
 
+            }
+        });
+
+        mFabClear = (FloatingActionButton) v.findViewById(R.id.fabClear);
+        mFabClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (googleMap != null) {
+                    googleMap.clear();
+                    mFabClear.setVisibility(View.INVISIBLE);
+
+                }
             }
         });
 
@@ -203,12 +214,12 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
-                for (LatLng pos:lstPolies) {
+                for (LatLng pos : lstPolies) {
                     builder.include(pos);
                 }
                 LatLngBounds bounds = builder.build();
 
-                CameraUpdate update = CameraUpdateFactory.newLatLngBounds(bounds,AppSettings.CAMERA_DEFAULT_DIRECTION_PADDING_PX);
+                CameraUpdate update = CameraUpdateFactory.newLatLngBounds(bounds, AppSettings.CAMERA_DEFAULT_DIRECTION_PADDING_INPX);
                 googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
 
                 googleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
@@ -219,10 +230,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
                     }
                 });
 
+                mFabClear.setVisibility(View.VISIBLE);
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
 
         }
     }
