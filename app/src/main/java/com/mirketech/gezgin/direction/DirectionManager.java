@@ -3,16 +3,19 @@ package com.mirketech.gezgin.direction;
 import android.content.Context;
 import android.util.Log;
 
-import com.google.android.gms.maps.model.LatLng;
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import com.android.volley.Request.Method;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.Request.Method;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.maps.model.LatLng;
+import com.mirketech.gezgin.R;
+import com.mirketech.gezgin.comm.CommManager;
+import com.mirketech.gezgin.comm.GResponse;
 import com.mirketech.gezgin.comm.VolleyManager;
+import com.mirketech.gezgin.util.AppSettings;
+
+import org.json.JSONObject;
 
 /**
  * Created by yasin.avci on 21.4.2016.
@@ -21,22 +24,22 @@ public class DirectionManager {
 
     private static final String TAG = DirectionManager.class.getSimpleName();
 
-    private static final String ROOT_URL                = "https://maps.googleapis.com/maps/api/directions/";
-    private static final String QSTRING_JSON            = "json?";
+    private static final String ROOT_URL = "https://maps.googleapis.com/maps/api/directions/";
+    private static final String QSTRING_JSON = "json?";
 
-    private static final String PARAM_LANGUAGE          = "language";
-    private static final String PARAM_ORIGIN            = "origin";
-    private static final String PARAM_DESTINATION       = "destination";
-    private static final String PARAM_APIKEY            = "key";
+    private static final String PARAM_LANGUAGE = "language";
+    private static final String PARAM_ORIGIN = "origin";
+    private static final String PARAM_DESTINATION = "destination";
+    private static final String PARAM_APIKEY = "key";
 
 
     private Context appContext;
     private static DirectionManager ourInstance = null;
 
-    public static DirectionManager getInstance(Context _context) {
-        if(ourInstance != null){
+    public static synchronized DirectionManager getInstance(Context _context) {
+        if (ourInstance != null) {
             return ourInstance;
-        }else{
+        } else {
             ourInstance = new DirectionManager(_context);
         }
 
@@ -49,8 +52,7 @@ public class DirectionManager {
     }
 
 
-
-    public String GetDirections(LatLng origin , LatLng dest){
+    public void GetDirections(LatLng origin, LatLng dest) {
 
 
         VolleyManager vManager = VolleyManager.getInstance(appContext);
@@ -58,50 +60,55 @@ public class DirectionManager {
 
 
         JsonObjectRequest myReq = new JsonObjectRequest(Method.GET,
-                "https://maps.googleapis.com/maps/api/directions/json?language=tr&origin=41.0003186, 28.859703&destination=40.7606417, 29.7248319&key=AIzaSyDUGe7_WKd1Sq182Iwycghz1ZB3u0cqews",
+                PrepareDirectionURL(origin, dest),
                 null,
-                createMyReqSuccessListener(),
-                createMyReqErrorListener());
+                createReqSuccessListener(),
+                createReqErrorListener());
 
         queue.add(myReq);
 
-
-
-
-
-        return "";
-    }
-    private String PrepareDirectionURL(LatLng origin , LatLng dest){
-
-
-
-
-     return "";
     }
 
+    private String PrepareDirectionURL(LatLng origin, LatLng dest) {
 
-    private Response.Listener<JSONObject> createMyReqSuccessListener() {
+        StringBuilder sbU = new StringBuilder();
+        sbU.append(DirectionManager.ROOT_URL);
+        sbU.append(DirectionManager.QSTRING_JSON);
+        sbU.append(DirectionManager.PARAM_ORIGIN + "=" + origin.latitude + "," + origin.longitude);
+        sbU.append("&" + DirectionManager.PARAM_DESTINATION + "=" + dest.latitude + "," + dest.longitude);
+        sbU.append("&" + DirectionManager.PARAM_LANGUAGE + "=" + AppSettings.Language);
+        sbU.append("&" + DirectionManager.PARAM_APIKEY + "=" + appContext.getString(R.string.google_directions_apikey));
+
+
+        return sbU.toString();
+    }
+
+
+    private Response.Listener<JSONObject> createReqSuccessListener() {
         return new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                    Log.d(TAG,"response : "+ response);
+                Log.d(TAG, "response : " + response);
+
+                GResponse gResp = new GResponse(GResponse.SOURCE_DIRECTION, response, GResponse.ResponseTypes.Success);
+                CommManager.getInstance().TriggerResponse(gResp);
+
             }
         };
     }
 
-    private Response.ErrorListener createMyReqErrorListener() {
+    private Response.ErrorListener createReqErrorListener() {
         return new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.d(TAG,"error : "+ error.getMessage());
+                Log.d(TAG, "error : " + error.getMessage());
+
+                GResponse gResp = new GResponse(GResponse.SOURCE_DIRECTION, error, GResponse.ResponseTypes.Error);
+                CommManager.getInstance().TriggerResponse(gResp);
+
             }
         };
     }
-
-
-
-
-
 
 
 }

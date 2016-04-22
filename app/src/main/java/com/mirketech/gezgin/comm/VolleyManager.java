@@ -18,7 +18,7 @@ public class VolleyManager {
     //private ImageLoader mImageLoader;
 
 
-    public static VolleyManager getInstance(Context _context) {
+    public static synchronized VolleyManager getInstance(Context _context) {
         if(ourInstance != null){
             return ourInstance;
         }else{
