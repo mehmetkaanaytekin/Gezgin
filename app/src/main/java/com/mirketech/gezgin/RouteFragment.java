@@ -26,6 +26,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
@@ -54,12 +55,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private static final String TAG = RouteFragment.class.getSimpleName();
 
     private GoogleMap googleMap;
-    private Marker mMarker;
     private MapView mMapView;
     private FloatingActionButton mFabAction;
     private LatLng latestMyLocation;
-
     private OnFragmentInteractionListener mListener;
+    private boolean isInterrupted = false;
 
     public RouteFragment() {
         // Required empty public constructor
@@ -106,7 +106,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                Log.d(TAG,"onQueryTextSubmit query : " + query);
+                Log.d(TAG, "onQueryTextSubmit query : " + query);
                 return false;
             }
 
@@ -132,8 +132,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
         };
 
         MenuItemCompat.setOnActionExpandListener(searchItem, expandListener);
-
-
 
 
         super.onCreateOptionsMenu(menu, inflater);
@@ -183,6 +181,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
         if (response.ResponseType.equals(GResponse.ResponseTypes.Success)) {
 
             try {
+                isInterrupted = true;
+
                 JSONObject data = (JSONObject) response.Data;
 
                 JSONArray routeObject = data.getJSONArray("routes");
@@ -201,7 +201,24 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
                 googleMap.addPolyline(polylineOptions);
 
-                Log.d(TAG, "polies : " + lstPolies.size());
+                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+
+                for (LatLng pos:lstPolies) {
+                    builder.include(pos);
+                }
+                LatLngBounds bounds = builder.build();
+
+                CameraUpdate update = CameraUpdateFactory.newLatLngBounds(bounds,AppSettings.CAMERA_DEFAULT_DIRECTION_PADDING_PX);
+                googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
+
+                googleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+                    @Override
+                    public boolean onMyLocationButtonClick() {
+                        isInterrupted = false;
+                        return false;
+                    }
+                });
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -228,16 +245,13 @@ public class RouteFragment extends Fragment implements ICommResponse {
         @Override
         public void onMyLocationChange(Location location) {
 
-            Log.e(TAG, "onMyLocationChange");
+            Log.d(TAG, "onMyLocationChange");
 
             LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
 
             latestMyLocation = loc;
 
-            if (mMarker != null) {
-                mMarker.remove();
-            }
-            if (googleMap != null) {
+            if (googleMap != null && !isInterrupted) {
                 CameraUpdate update = CameraUpdateFactory.newLatLngZoom(loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
                 googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
             }
