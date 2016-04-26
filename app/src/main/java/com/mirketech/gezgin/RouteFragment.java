@@ -304,8 +304,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
         }
 
 
-        //TODO continue using placesList! add placesList to ListView or something !
-
     }
 
 
