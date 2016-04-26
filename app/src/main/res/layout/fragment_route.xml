@@ -1,44 +1,70 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.mirketech.gezgin.RouteFragment">
+
+    <ListView
+        android:id="@+id/lstSearchSuggestions"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:layout_gravity="center_horizontal|top"
+        android:visibility="gone"
+
+        />
+
 
     <com.google.android.gms.maps.MapView
         android:id="@+id/mapView"
+        class="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        class="com.google.android.gms.maps.SupportMapFragment" />
+        android:layout_height="match_parent" />
 
 
-    <android.support.design.widget.FloatingActionButton
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+    <android.support.design.widget.FloatingActionButton xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/fabAction"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:clickable="true"
-        app:backgroundTint="#FFFFFF"
-        android:animateLayoutChanges="true"
-        android:src="@android:drawable/ic_input_add"
         android:layout_gravity="bottom|right|end"
-        />
+        android:layout_margin="16dp"
+        android:animateLayoutChanges="true"
+        android:clickable="true"
+        android:src="@android:drawable/ic_input_add"
+        app:backgroundTint="#FFFFFF" />
 
-    <android.support.design.widget.FloatingActionButton
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+    <android.support.design.widget.FloatingActionButton xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/fabClear"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom|left|end"
         android:layout_margin="16dp"
+        android:animateLayoutChanges="true"
         android:clickable="true"
-        app:backgroundTint="#FFFFFF"
         android:src="@android:drawable/ic_menu_revert"
         android:visibility="invisible"
-        android:animateLayoutChanges="true"
-        android:layout_gravity="bottom|left|end"
-        />
+        app:backgroundTint="#FFFFFF" />
 
+    <com.dmitrymalkovich.android.ProgressFloatingActionButton
+        android:id="@+id/progFabLoading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|top"
+        android:layout_margin="@dimen/fab_margin"
+        android:visibility="gone">
+
+        <android.support.design.widget.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_rotate"
+            app:backgroundTint="#FFFFFF" />
+
+        <ProgressBar
+            style="@style/Widget.AppCompat.ProgressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </com.dmitrymalkovich.android.ProgressFloatingActionButton>
 
 
 </FrameLayout>

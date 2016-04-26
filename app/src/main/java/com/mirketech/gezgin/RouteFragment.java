@@ -19,7 +19,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 
+import com.dmitrymalkovich.android.ProgressFloatingActionButton;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -27,8 +29,9 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.maps.android.PolyUtil;
 import com.mirketech.gezgin.comm.CommManager;
 import com.mirketech.gezgin.comm.GResponse;
 import com.mirketech.gezgin.comm.ICommResponse;
@@ -36,8 +39,6 @@ import com.mirketech.gezgin.direction.DirectionManager;
 import com.mirketech.gezgin.places.PlacesManager;
 import com.mirketech.gezgin.util.AppSettings;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -57,6 +58,9 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     private static final String TAG = RouteFragment.class.getSimpleName();
 
+    private ListView lstSearchSuggestions;
+
+    private ProgressFloatingActionButton progFabLoading;
     private GoogleMap googleMap;
     private MapView mMapView;
     private FloatingActionButton mFabAction;
@@ -64,6 +68,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private LatLng latestMyLocation;
     private OnFragmentInteractionListener mListener;
     private boolean isInterrupted = false;
+    private List<Marker> lstMarkers;
+
 
     public RouteFragment() {
         // Required empty public constructor
@@ -110,6 +116,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 Log.d(TAG, "onQueryTextSubmit query : " + query);
+                clearMap();
+                progFabLoading.setVisibility(View.VISIBLE);
+                mFabClear.setVisibility(View.VISIBLE);
+                PlacesManager.getInstance(getActivity()).GetPlacesAutoComplete(query.trim());
+
 
                 return false;
             }
@@ -149,6 +160,9 @@ public class RouteFragment extends Fragment implements ICommResponse {
         View v = inflater.inflate(R.layout.fragment_route, container,
                 false);
 
+        lstSearchSuggestions = (ListView) v.findViewById(R.id.lstSearchSuggestions);
+        progFabLoading = (ProgressFloatingActionButton) v.findViewById(R.id.progFabLoading);
+
         mFabAction = (FloatingActionButton) v.findViewById(R.id.fabAction);
         mFabAction.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -169,19 +183,22 @@ public class RouteFragment extends Fragment implements ICommResponse {
         mFabClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (googleMap != null) {
-                    googleMap.clear();
-                    mFabClear.setVisibility(View.INVISIBLE);
-
-                }
+                clearMap();
             }
         });
 
         initMap(v, savedInstanceState);
 
-        CommManager.getInstance().SetResponseListener(this);
 
         return v;
+    }
+
+    private void clearMap() {
+        if (googleMap != null) {
+            googleMap.clear();
+            lstMarkers.clear();
+            mFabClear.setVisibility(View.INVISIBLE);
+        }
     }
 
     private void parseDirectionResponse(GResponse response) {
@@ -217,18 +234,79 @@ public class RouteFragment extends Fragment implements ICommResponse {
         }
     }
 
+    private void parsePlaceDetailsResponse(GResponse response) {
+
+        try {
+
+            isInterrupted = true;
+
+            JSONObject data = (JSONObject) response.Data;
+
+            JSONObject result = data.getJSONObject("result").getJSONObject("geometry").getJSONObject("location");
+            Double longitude = result.getDouble("lng");
+            Double latitude = result.getDouble("lat");
+
+            MarkerOptions mOpt = new MarkerOptions();
+            mOpt.position(new LatLng(latitude, longitude));
+
+            Marker marker = googleMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(latitude, longitude))
+                    .title(data.getJSONObject("result").getString("name")));
+
+
+            lstMarkers.add(marker);
+
+
+            ArrayList<LatLng> lstPositions = new ArrayList<>();
+
+            for (Marker mrk : lstMarkers) {
+                lstPositions.add(mrk.getPosition());
+            }
+
+            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+
+            for (LatLng pos : lstPositions) {
+                builder.include(pos);
+            }
+            LatLngBounds bounds = builder.build();
+
+            CameraUpdate update = CameraUpdateFactory.newLatLngBounds(bounds, AppSettings.CAMERA_DEFAULT_DIRECTION_PADDING_INPX);
+            googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+
+
+    }
 
     private void parsePlacesAutoCompleteResponse(GResponse response) {
 
 
         List<HashMap<String, String>> placesList = PlacesManager.getInstance(getActivity()).parsePlacesAutoComplete(response);
 
+        Log.d(TAG, "placesList.size : " + placesList.size());
+
+        progFabLoading.setVisibility(View.GONE);
+
+        for (HashMap<String, String> item : placesList) {
+
+//            Log.d(TAG, "item desc : " + item.get("description"));
+//            Log.d(TAG, "item _id : " + item.get("_id"));
+//            Log.d(TAG, "item reference : " + item.get("reference"));
+
+
+            PlacesManager.getInstance(getActivity()).GetPlaceDetails(item.get("place_id"));
+
+
+        }
+
 
         //TODO continue using placesList! add placesList to ListView or something !
 
     }
-
-
 
 
     @Override
@@ -243,6 +321,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
         if (response.RequestType.equals(GResponse.RequestTypes.Places_Autocomplete)) {
 
             parsePlacesAutoCompleteResponse(response);
+        }
+
+        if (response.RequestType.equals(GResponse.RequestTypes.Places_GetDetails)) {
+
+            parsePlaceDetailsResponse(response);
         }
 
         if (response.RequestType.equals(GResponse.RequestTypes.Direction)) {
@@ -271,7 +354,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
         @Override
         public void onMyLocationChange(Location location) {
 
-            Log.d(TAG, "onMyLocationChange");
+            //Log.d(TAG, "onMyLocationChange");
 
             LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
 
@@ -364,6 +447,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
     @Override
     public void onStart() {
         super.onStart();
+        lstMarkers = new ArrayList<>();
+        CommManager.getInstance().SetResponseListener(this);
     }
 
 }

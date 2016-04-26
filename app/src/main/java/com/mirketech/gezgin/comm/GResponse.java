@@ -9,7 +9,7 @@ public class GResponse {
     public enum RequestTypes{
         Direction,
         Places_Autocomplete,
-        Places_Get
+        Places_GetDetails
     }
 
 

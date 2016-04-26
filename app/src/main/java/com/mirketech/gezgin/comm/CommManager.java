@@ -41,7 +41,7 @@ public class CommManager {
 
     public void TriggerResponse(GResponse response) {
 
-        Log.d(TAG,".TriggerResponse: Source / Type / Data = " + response.Source + " / " + response.ResponseType.toString() + " / " + response.Data);
+        Log.d(TAG,".TriggerResponse: RequestType / Status / Data = " + response.RequestType.toString() + " / " + response.Status.toString() + " / " + response.Data);
 
         if (ResponseListeners != null) {
             for (ICommResponse listener : ResponseListeners) {

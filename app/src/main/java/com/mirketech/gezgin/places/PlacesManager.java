@@ -28,9 +28,11 @@ import java.util.List;
 public class PlacesManager {
     private static final String TAG = PlacesManager.class.getSimpleName();
 
-    private static final String ROOT_URL = "https://maps.googleapis.com/maps/api/place/autocomplete/";
+    private static final String AUTOCOMPLETE_ROOT_URL = "https://maps.googleapis.com/maps/api/place/autocomplete/";
+    private static final String DETAILS_ROOT_URL = "https://maps.googleapis.com/maps/api/place/details/";
     private static final String QSTRING_JSON = "json?";
     private static final String PARAM_INPUT = "input";
+    private static final String PARAM_PLACEID = "placeid";
     private static final String PARAM_APIKEY = "key";
     private static final String PARAM_LANGUAGE = "language";
 
@@ -59,7 +61,7 @@ public class PlacesManager {
         RequestQueue queue = vManager.getRequestQueue();
 
 
-        JsonObjectRequest myReq = new JsonObjectRequest(Request.Method.GET,
+        JsonObjectRequest myReq = new JsonObjectRequest(Request.Method.POST,
                 PreparePlacesAutoCompleteURL(input),
                 null,
                 createReqSuccessListener(GResponse.RequestTypes.Places_Autocomplete),
@@ -70,14 +72,45 @@ public class PlacesManager {
 
     }
 
+    public void GetPlaceDetails(String place_id){
+
+        VolleyManager vManager = VolleyManager.getInstance(appContext);
+        RequestQueue queue = vManager.getRequestQueue();
+
+
+        JsonObjectRequest myReq = new JsonObjectRequest(Request.Method.POST,
+                PreparePlacesDetailsURL(place_id),
+                null,
+                createReqSuccessListener(GResponse.RequestTypes.Places_GetDetails),
+                createReqErrorListener(GResponse.RequestTypes.Places_GetDetails));
+
+        queue.add(myReq);
+
+
+
+    }
+
     public String PreparePlacesAutoCompleteURL(String input) {
 
         StringBuilder sbU = new StringBuilder();
-        sbU.append(PlacesManager.ROOT_URL);
+        sbU.append(PlacesManager.AUTOCOMPLETE_ROOT_URL);
         sbU.append(PlacesManager.QSTRING_JSON);
         sbU.append(PlacesManager.PARAM_INPUT + "=" + input);
         sbU.append("&" + PlacesManager.PARAM_LANGUAGE + "=" + AppSettings.LANGUAGE);
         sbU.append("&" + PlacesManager.PARAM_APIKEY + "=" + appContext.getString(R.string.google_directions_apikey));
+
+        return sbU.toString();
+    }
+
+    public String PreparePlacesDetailsURL(String place_id){
+
+        StringBuilder sbU = new StringBuilder();
+        sbU.append(PlacesManager.DETAILS_ROOT_URL);
+        sbU.append(PlacesManager.QSTRING_JSON);
+        sbU.append(PlacesManager.PARAM_PLACEID + "=" + place_id);
+        sbU.append("&" + PlacesManager.PARAM_LANGUAGE + "=" + AppSettings.LANGUAGE);
+        sbU.append("&" + PlacesManager.PARAM_APIKEY + "=" + appContext.getString(R.string.google_directions_apikey));
+
 
         return sbU.toString();
     }
@@ -122,18 +155,18 @@ public class PlacesManager {
 
         HashMap<String, String> place = new HashMap<String, String>();
 
-        String id = "";
+        String place_id = "";
         String reference = "";
         String description = "";
 
         try {
 
             description = jPlace.getString("description");
-            id = jPlace.getString("id");
+            place_id = jPlace.getString("place_id");
             reference = jPlace.getString("reference");
 
             place.put("description", description);
-            place.put("_id", id);
+            place.put("place_id", place_id);
             place.put("reference", reference);
 
         } catch (JSONException e) {
