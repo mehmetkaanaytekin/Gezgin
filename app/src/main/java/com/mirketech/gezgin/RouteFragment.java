@@ -33,11 +33,15 @@ import com.mirketech.gezgin.comm.CommManager;
 import com.mirketech.gezgin.comm.GResponse;
 import com.mirketech.gezgin.comm.ICommResponse;
 import com.mirketech.gezgin.direction.DirectionManager;
+import com.mirketech.gezgin.places.PlacesManager;
 import com.mirketech.gezgin.util.AppSettings;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -87,8 +91,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-//            mParam1 = getArguments().getString(ARG_PARAM1);
-//            mParam2 = getArguments().getString(ARG_PARAM2);
+
         }
         setHasOptionsMenu(true);
     }
@@ -107,6 +110,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 Log.d(TAG, "onQueryTextSubmit query : " + query);
+
                 return false;
             }
 
@@ -155,7 +159,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
                     DirectionManager.getInstance(getActivity()).GetDirections(latestMyLocation, AppSettings.MAP_DEFAULT_LOCATION);//for testing
 
-
                 }
 
 
@@ -181,62 +184,73 @@ public class RouteFragment extends Fragment implements ICommResponse {
         return v;
     }
 
+    private void parseDirectionResponse(GResponse response) {
+        try {
+            isInterrupted = true;
+
+
+            List<LatLng> lstPolies = DirectionManager.getInstance(getActivity()).ParseDirectionResponse(response);
+
+            PolylineOptions polylineOptions = new PolylineOptions();
+            polylineOptions.addAll(lstPolies);
+            polylineOptions
+                    .width(7)
+                    .color(Color.GREEN);
+
+            googleMap.addPolyline(polylineOptions);
+
+            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+
+            for (LatLng pos : lstPolies) {
+                builder.include(pos);
+            }
+            LatLngBounds bounds = builder.build();
+
+            CameraUpdate update = CameraUpdateFactory.newLatLngBounds(bounds, AppSettings.CAMERA_DEFAULT_DIRECTION_PADDING_INPX);
+            googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
+
+
+            mFabClear.setVisibility(View.VISIBLE);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private void parsePlacesAutoCompleteResponse(GResponse response) {
+
+
+        List<HashMap<String, String>> placesList = PlacesManager.getInstance(getActivity()).parsePlacesAutoComplete(response);
+
+
+        //TODO continue using placesList! add placesList to ListView or something !
+
+    }
+
+
+
+
     @Override
     public void onResponse(GResponse response) {
         Log.d(TAG, "response received.");
-
-        if (!response.Source.equals(GResponse.SOURCE_DIRECTION)) {
+        if (!response.Status.equals(GResponse.ResponseStatus.Success)) {
+            Log.e(TAG, ".onResponse Status : " + response.Status);
             return;
         }
 
-        if (response.ResponseType.equals(GResponse.ResponseTypes.Success)) {
 
-            try {
-                isInterrupted = true;
+        if (response.RequestType.equals(GResponse.RequestTypes.Places_Autocomplete)) {
 
-                JSONObject data = (JSONObject) response.Data;
-
-                JSONArray routeObject = data.getJSONArray("routes");
-                JSONObject routes = routeObject.getJSONObject(0);
-                JSONObject overviewPolylines = routes.getJSONObject("overview_polyline");
-                String encodedString = overviewPolylines.getString("points");
-
-
-                List<LatLng> lstPolies = PolyUtil.decode(encodedString);
-
-                PolylineOptions polylineOptions = new PolylineOptions();
-                polylineOptions.addAll(lstPolies);
-                polylineOptions
-                        .width(7)
-                        .color(Color.GREEN);
-
-                googleMap.addPolyline(polylineOptions);
-
-                LatLngBounds.Builder builder = new LatLngBounds.Builder();
-
-                for (LatLng pos : lstPolies) {
-                    builder.include(pos);
-                }
-                LatLngBounds bounds = builder.build();
-
-                CameraUpdate update = CameraUpdateFactory.newLatLngBounds(bounds, AppSettings.CAMERA_DEFAULT_DIRECTION_PADDING_INPX);
-                googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
-
-                googleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
-                    @Override
-                    public boolean onMyLocationButtonClick() {
-                        isInterrupted = false;
-                        return false;
-                    }
-                });
-
-                mFabClear.setVisibility(View.VISIBLE);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
+            parsePlacesAutoCompleteResponse(response);
         }
+
+        if (response.RequestType.equals(GResponse.RequestTypes.Direction)) {
+
+            parseDirectionResponse(response);
+        }
+
+
     }
 
     private void EnableMyLocation() {
@@ -298,6 +312,14 @@ public class RouteFragment extends Fragment implements ICommResponse {
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(AppSettings.MAP_DEFAULT_LOCATION));
         googleMap.animateCamera(CameraUpdateFactory.zoomTo(AppSettings.CAMERA_DEFAULT_ZOOM_LEVEL), AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
 
+
+        googleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+            @Override
+            public boolean onMyLocationButtonClick() {
+                isInterrupted = false;
+                return false;
+            }
+        });
 
     }
 

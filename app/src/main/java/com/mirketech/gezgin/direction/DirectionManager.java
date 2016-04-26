@@ -9,13 +9,17 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.PolyUtil;
 import com.mirketech.gezgin.R;
 import com.mirketech.gezgin.comm.CommManager;
 import com.mirketech.gezgin.comm.GResponse;
 import com.mirketech.gezgin.comm.VolleyManager;
 import com.mirketech.gezgin.util.AppSettings;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.List;
 
 /**
  * Created by yasin.avci on 21.4.2016.
@@ -83,6 +87,26 @@ public class DirectionManager {
         return sbU.toString();
     }
 
+    public List<LatLng> ParseDirectionResponse(GResponse response){
+        try{
+
+            JSONObject data = (JSONObject) response.Data;
+
+            JSONArray routeObject = data.getJSONArray("routes");
+            JSONObject routes = routeObject.getJSONObject(0);
+            JSONObject overviewPolylines = routes.getJSONObject("overview_polyline");
+            String encodedString = overviewPolylines.getString("points");
+
+            return PolyUtil.decode(encodedString);
+
+        }catch (Exception e){
+            e.printStackTrace();
+            return null;
+
+        }
+
+    }
+
 
     private Response.Listener<JSONObject> createReqSuccessListener() {
         return new Response.Listener<JSONObject>() {
@@ -90,7 +114,7 @@ public class DirectionManager {
             public void onResponse(JSONObject response) {
                 Log.d(TAG, "response : " + response);
 
-                GResponse gResp = new GResponse(GResponse.SOURCE_DIRECTION, response, GResponse.ResponseTypes.Success);
+                GResponse gResp = new GResponse(GResponse.RequestTypes.Direction, response, GResponse.ResponseStatus.Success);
                 CommManager.getInstance().TriggerResponse(gResp);
 
             }
@@ -103,7 +127,7 @@ public class DirectionManager {
             public void onErrorResponse(VolleyError error) {
                 Log.d(TAG, "error : " + error.getMessage());
 
-                GResponse gResp = new GResponse(GResponse.SOURCE_DIRECTION, error, GResponse.ResponseTypes.Error);
+                GResponse gResp = new GResponse(GResponse.RequestTypes.Direction, error, GResponse.ResponseStatus.Error);
                 CommManager.getInstance().TriggerResponse(gResp);
 
             }

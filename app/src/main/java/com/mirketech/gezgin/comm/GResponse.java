@@ -5,10 +5,15 @@ package com.mirketech.gezgin.comm;
  */
 public class GResponse {
 
-    public static final String SOURCE_DIRECTION         = "G_DIRECTION";
-    public static final String SOURCE_PLACES            = "G_PLACES";
 
-    public enum ResponseTypes{
+    public enum RequestTypes{
+        Direction,
+        Places_Autocomplete,
+        Places_Get
+    }
+
+
+    public enum ResponseStatus{
         Success,
         Error,
         Log
@@ -17,13 +22,13 @@ public class GResponse {
 
 
     public Object Data;
-    public String Source;
-    public ResponseTypes ResponseType;
+    public RequestTypes RequestType;
+    public ResponseStatus Status;
 
-    public GResponse(String _source , Object _data , ResponseTypes _type){
-        Source = _source;
+    public GResponse(RequestTypes _type , Object _data , ResponseStatus _status){
+        RequestType = _type;
         Data = _data;
-        ResponseType = _type;
+        Status = _status;
     }
 
 
