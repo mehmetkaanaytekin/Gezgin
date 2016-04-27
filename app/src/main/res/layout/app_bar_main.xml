@@ -23,21 +23,5 @@
 
     <include layout="@layout/content_main" />
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
->>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:src="@android:drawable/ic_dialog_map" />
-<<<<<<< HEAD
->>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
-=======
->>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 
 </android.support.design.widget.CoordinatorLayout>
