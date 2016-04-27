@@ -1,10 +1,14 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<<<<<<< HEAD
     xmlns:app="http://schemas.android.com/apk/res-auto"
+=======
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.mirketech.gezgin.RouteFragment">
 
+<<<<<<< HEAD
     <ListView
         android:id="@+id/lstSearchSuggestions"
         android:layout_width="match_parent"
@@ -66,5 +70,12 @@
 
     </com.dmitrymalkovich.android.ProgressFloatingActionButton>
 
+=======
+    <com.google.android.gms.maps.MapView
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        class="com.google.android.gms.maps.SupportMapFragment" />
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 
 </FrameLayout>

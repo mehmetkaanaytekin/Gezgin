@@ -3,6 +3,7 @@ package com.mirketech.gezgin;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+<<<<<<< HEAD
 import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
@@ -23,11 +24,32 @@ import android.widget.ListView;
 
 import com.dmitrymalkovich.android.ProgressFloatingActionButton;
 import com.google.android.gms.maps.CameraUpdate;
+=======
+import android.location.Location;
+import android.net.Uri;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.Api;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationRequest;
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
+<<<<<<< HEAD
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -44,6 +66,16 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+=======
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+
+import java.io.FileDescriptor;
+import java.io.PrintWriter;
+import java.util.concurrent.TimeUnit;
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 
 
 /**
@@ -54,6 +86,7 @@ import java.util.List;
  * Use the {@link RouteFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
+<<<<<<< HEAD
 public class RouteFragment extends Fragment implements ICommResponse {
 
     private static final String TAG = RouteFragment.class.getSimpleName();
@@ -75,6 +108,20 @@ public class RouteFragment extends Fragment implements ICommResponse {
         // Required empty public constructor
 
 
+=======
+public class RouteFragment extends Fragment {
+
+    private static final String TAG = RouteFragment.class.getSimpleName();
+
+    private GoogleMap googleMap;
+    private Marker mMarker;
+    private MapView mMapView;
+
+    private OnFragmentInteractionListener mListener;
+
+    public RouteFragment() {
+        // Required empty public constructor
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
     }
 
     /**
@@ -97,6 +144,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
+<<<<<<< HEAD
 
         }
         setHasOptionsMenu(true);
@@ -150,6 +198,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
 
         super.onCreateOptionsMenu(menu, inflater);
+=======
+//            mParam1 = getArguments().getString(ARG_PARAM1);
+//            mParam2 = getArguments().getString(ARG_PARAM2);
+        }
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
     }
 
     @Override
@@ -160,6 +213,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
         View v = inflater.inflate(R.layout.fragment_route, container,
                 false);
 
+<<<<<<< HEAD
         lstSearchSuggestions = (ListView) v.findViewById(R.id.lstSearchSuggestions);
         progFabLoading = (ProgressFloatingActionButton) v.findViewById(R.id.progFabLoading);
 
@@ -345,6 +399,25 @@ public class RouteFragment extends Fragment implements ICommResponse {
         }
         Log.d(TAG, "setMyLocationEnabled");
 
+=======
+        (getActivity().findViewById(R.id.fab)).setVisibility(View.GONE);
+
+        initMap(v, savedInstanceState);
+
+        return v;
+    }
+
+    private void EnableMyLocation() {
+
+        Log.d(TAG,"EnableMyLocation");
+
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d(TAG,"EnableMyLocation permissions");
+            return;
+        }
+        Log.d(TAG,"setMyLocationEnabled");
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
         googleMap.setMyLocationEnabled(true);
     }
 
@@ -352,6 +425,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
         @Override
         public void onMyLocationChange(Location location) {
 
+<<<<<<< HEAD
             //Log.d(TAG, "onMyLocationChange");
 
             LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
@@ -361,12 +435,28 @@ public class RouteFragment extends Fragment implements ICommResponse {
             if (googleMap != null && !isInterrupted) {
                 CameraUpdate update = CameraUpdateFactory.newLatLngZoom(loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
                 googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
+=======
+            Log.e(TAG, "onMyLocationChange");
+
+            LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
+
+            mMarker.remove();
+            mMarker = googleMap.addMarker(new MarkerOptions().position(loc).title("Current Location"));
+
+            if(googleMap != null){
+                googleMap.moveCamera(CameraUpdateFactory.newLatLng(loc));
+                googleMap.animateCamera(CameraUpdateFactory.zoomTo(14), 4000, null);
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
             }
         }
     };
 
     private void initMap(View v, Bundle savedInstanceState) {
+<<<<<<< HEAD
         Log.d(TAG, "initMap");
+=======
+        Log.d(TAG,"initMap");
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 
         mMapView = (MapView) v.findViewById(R.id.mapView);
         mMapView.onCreate(savedInstanceState);
@@ -382,13 +472,18 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
         googleMap = mMapView.getMap();
 
+<<<<<<< HEAD
         //googleMap.getUiSettings().setZoomControlsEnabled(true);
+=======
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
         googleMap.getUiSettings().setMapToolbarEnabled(false);
 
         googleMap.setOnMyLocationChangeListener(myLocationChangeListener);
 
         EnableMyLocation();
 
+<<<<<<< HEAD
 
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(AppSettings.MAP_DEFAULT_LOCATION));
         googleMap.animateCamera(CameraUpdateFactory.zoomTo(AppSettings.CAMERA_DEFAULT_ZOOM_LEVEL), AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
@@ -402,6 +497,28 @@ public class RouteFragment extends Fragment implements ICommResponse {
             }
         });
 
+=======
+        LatLng istanbul = new LatLng(41.0003186, 28.859703);
+        //LatLng sakarya = new LatLng(40.7606417, 29.7248319);
+
+
+
+        mMarker = googleMap.addMarker(new MarkerOptions().position(istanbul).title("istanbul"));
+
+        googleMap.moveCamera(CameraUpdateFactory.newLatLng(istanbul));
+        googleMap.animateCamera(CameraUpdateFactory.zoomTo(8), 4000, null);
+
+//        googleMap.addPolyline((new PolylineOptions())
+//                .add(istanbul, sakarya).width(0.8F));
+
+//        googleMap.setOnPolylineClickListener(new GoogleMap.OnPolylineClickListener() {
+//            @Override
+//            public void onPolylineClick(Polyline polyline) {
+//                int strokeColor = polyline.getColor() ^ 0x00ffffff;
+//                polyline.setColor(strokeColor);
+//            }
+//        });
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
     }
 
     public void onButtonPressed(Uri uri) {
@@ -427,7 +544,10 @@ public class RouteFragment extends Fragment implements ICommResponse {
         mListener = null;
     }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -445,8 +565,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
     @Override
     public void onStart() {
         super.onStart();
+<<<<<<< HEAD
         lstMarkers = new ArrayList<>();
         CommManager.getInstance().SetResponseListener(this);
+=======
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
     }
 
 }
