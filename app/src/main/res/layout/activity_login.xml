@@ -13,14 +13,6 @@
     tools:context="com.mirketech.gezgin.LoginActivity">
 
     <!-- Login progress -->
-    <ProgressBar
-        android:id="@+id/login_progress"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:visibility="gone" />
-
     <ImageView
         android:id="@+id/gezginLogo"
         android:layout_width="200dp"
@@ -35,74 +27,59 @@
         android:layout_height="300dp"
         android:layout_marginTop="30dp">
 
-        <EditText
-            android:id="@+id/email"
-            android:layout_width="match_parent"
-            android:layout_height="45dp"
-            android:ems="10"
-            android:hint="E-Posta"
-            android:inputType="textEmailAddress"
-            android:textColorHint="@color/white" />
-
-        <EditText
-            android:id="@+id/password"
-            android:layout_width="match_parent"
-            android:layout_height="45dp"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_below="@+id/email"
-            android:layout_marginTop="20dp"
-            android:ems="10"
-            android:hint="Şifre"
-            android:inputType="textPassword"
-            android:textColorHint="@color/white" />
-
         <mehdi.sakout.fancybuttons.FancyButton
-            android:id="@+id/btnlogin"
+            android:id="@+id/btnexistingmember"
             android:layout_width="match_parent"
             android:layout_height="45dp"
-            android:layout_below="@+id/password"
-            android:layout_marginTop="20dp"
             android:textColor="@color/white"
-            fancy:fb_defaultColor="@color/colorPrimaryDark"
+            fancy:fb_defaultColor="@color/login_Button"
             fancy:fb_radius="5dp"
-            fancy:fb_text="Giriş"
+            fancy:fb_text="@string/member"
             fancy:fb_textColor="@color/white"
             fancy:fb_textGravity="center"
             fancy:fb_textSize="20dp"
-            fancy:fb_focusColor="#64C5E5"/>
+            fancy:fb_focusColor="@color/colorPrimaryDark"
+            android:layout_below="@+id/greeting"
+            android:layout_marginTop="20dp"/>
+
+        <mehdi.sakout.fancybuttons.FancyButton
+            android:id="@+id/btnnewmember"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:textColor="@color/white"
+            fancy:fb_defaultColor="@color/login_Button"
+            fancy:fb_radius="5dp"
+            fancy:fb_text="@string/newmember"
+            fancy:fb_textColor="@color/white"
+            fancy:fb_textGravity="center"
+            fancy:fb_textSize="20dp"
+            fancy:fb_focusColor="@color/colorPrimaryDark"
+            android:layout_below="@+id/btnexistingmember"
+            android:layout_marginTop="20dp" />
+
+        <mehdi.sakout.fancybuttons.FancyButton
+            android:id="@+id/btnnotmember"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:textColor="@color/white"
+            fancy:fb_defaultColor="@color/login_Button"
+            fancy:fb_radius="5dp"
+            fancy:fb_text="@string/notmember"
+            fancy:fb_textColor="@color/white"
+            fancy:fb_textGravity="center"
+            fancy:fb_textSize="20dp"
+            fancy:fb_focusColor="@color/colorPrimaryDark"
+            android:layout_below="@+id/btnnewmember"
+            android:layout_marginTop="20dp" />
 
         <TextView
-            android:id="@+id/passreminder"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/remembercredentials"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="10dp"
-            android:text="Şifrenizi unuttusanız buraya tıklayın."
-            android:textColor="@color/white" />
-
-        <CheckBox
-            android:id="@+id/remembercredentials"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
-            android:layout_alignLeft="@+id/passreminder"
-            android:layout_alignStart="@+id/passreminder"
-            android:layout_below="@+id/btnlogin"
-            android:checked="false"
-            android:textColor="@color/white" />
-
-        <TextView
-            android:id="@+id/textView2"
-            android:layout_width="match_parent"
-            android:layout_height="35dp"
-            android:layout_above="@+id/passreminder"
-            android:layout_toEndOf="@+id/remembercredentials"
-            android:layout_toRightOf="@+id/remembercredentials"
-            android:gravity="center_vertical"
-            android:text="Kullanıcı bilgilerimi hatırla"
-            android:textColor="@color/white" />
-
+            android:text="@string/greeting"
+            android:id="@+id/greeting"
+            android:textColor="@color/white"
+            android:textSize="21dp"
+            android:layout_centerHorizontal="true"/>
     </RelativeLayout>
 
 </LinearLayout>
