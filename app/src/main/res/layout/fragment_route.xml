@@ -1,34 +1,17 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-<<<<<<< HEAD
-<<<<<<< HEAD
+
     xmlns:app="http://schemas.android.com/apk/res-auto"
-=======
->>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
-=======
->>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.mirketech.gezgin.RouteFragment">
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     <ListView
         android:id="@+id/lstSearchSuggestions"
         android:layout_width="match_parent"
         android:layout_height="250dp"
         android:layout_gravity="center_horizontal|top"
-        android:visibility="gone"
-
-        />
-
-
-    <com.google.android.gms.maps.MapView
-        android:id="@+id/mapView"
-        class="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
+        android:visibility="gone" />
 
     <android.support.design.widget.FloatingActionButton xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/fabAction"
@@ -74,17 +57,10 @@
 
     </com.dmitrymalkovich.android.ProgressFloatingActionButton>
 
-=======
-=======
->>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
     <com.google.android.gms.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         class="com.google.android.gms.maps.SupportMapFragment" />
-<<<<<<< HEAD
->>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
-=======
->>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 
 </FrameLayout>
