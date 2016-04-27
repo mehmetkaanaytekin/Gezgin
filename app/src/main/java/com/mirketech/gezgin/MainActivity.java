@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //
 //        if (fab != null) {
@@ -40,6 +41,8 @@ public class MainActivity extends AppCompatActivity
 //            });
 //        }
 =======
+=======
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
         if (fab != null) {
@@ -51,6 +54,9 @@ public class MainActivity extends AppCompatActivity
                 }
             });
         }
+<<<<<<< HEAD
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
+=======
 >>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

@@ -27,9 +27,12 @@ dependencies {
     compile 'com.android.volley:volley:1.0.0'
     compile 'com.google.android.gms:play-services:8.4.0'
 <<<<<<< HEAD
+<<<<<<< HEAD
     compile 'com.google.maps.android:android-maps-utils:0.4+'
     compile 'com.dmitrymalkovich.android:progress-fab:1.2'
 
+=======
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 =======
 >>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 

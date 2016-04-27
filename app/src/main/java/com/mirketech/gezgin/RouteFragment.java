@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 <<<<<<< HEAD
+<<<<<<< HEAD
 import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
@@ -25,6 +26,8 @@ import android.widget.ListView;
 import com.dmitrymalkovich.android.ProgressFloatingActionButton;
 import com.google.android.gms.maps.CameraUpdate;
 =======
+=======
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -43,12 +46,16 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
+<<<<<<< HEAD
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
+=======
 >>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.LatLng;
+<<<<<<< HEAD
 <<<<<<< HEAD
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -67,6 +74,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 =======
+=======
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -75,6 +84,9 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.concurrent.TimeUnit;
+<<<<<<< HEAD
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
+=======
 >>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 
 
@@ -86,6 +98,7 @@ import java.util.concurrent.TimeUnit;
  * Use the {@link RouteFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
+<<<<<<< HEAD
 <<<<<<< HEAD
 public class RouteFragment extends Fragment implements ICommResponse {
 
@@ -109,6 +122,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
 
 =======
+=======
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 public class RouteFragment extends Fragment {
 
     private static final String TAG = RouteFragment.class.getSimpleName();
@@ -121,6 +136,9 @@ public class RouteFragment extends Fragment {
 
     public RouteFragment() {
         // Required empty public constructor
+<<<<<<< HEAD
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
+=======
 >>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
     }
 
@@ -144,6 +162,7 @@ public class RouteFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 
         }
@@ -203,6 +222,11 @@ public class RouteFragment extends Fragment {
 //            mParam2 = getArguments().getString(ARG_PARAM2);
         }
 >>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
+=======
+//            mParam1 = getArguments().getString(ARG_PARAM1);
+//            mParam2 = getArguments().getString(ARG_PARAM2);
+        }
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
     }
 
     @Override
@@ -213,6 +237,7 @@ public class RouteFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_route, container,
                 false);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         lstSearchSuggestions = (ListView) v.findViewById(R.id.lstSearchSuggestions);
         progFabLoading = (ProgressFloatingActionButton) v.findViewById(R.id.progFabLoading);
@@ -400,6 +425,8 @@ public class RouteFragment extends Fragment {
         Log.d(TAG, "setMyLocationEnabled");
 
 =======
+=======
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
         (getActivity().findViewById(R.id.fab)).setVisibility(View.GONE);
 
         initMap(v, savedInstanceState);
@@ -417,6 +444,9 @@ public class RouteFragment extends Fragment {
             return;
         }
         Log.d(TAG,"setMyLocationEnabled");
+<<<<<<< HEAD
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
+=======
 >>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
         googleMap.setMyLocationEnabled(true);
     }
@@ -425,6 +455,7 @@ public class RouteFragment extends Fragment {
         @Override
         public void onMyLocationChange(Location location) {
 
+<<<<<<< HEAD
 <<<<<<< HEAD
             //Log.d(TAG, "onMyLocationChange");
 
@@ -436,6 +467,8 @@ public class RouteFragment extends Fragment {
                 CameraUpdate update = CameraUpdateFactory.newLatLngZoom(loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
                 googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
 =======
+=======
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
             Log.e(TAG, "onMyLocationChange");
 
             LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
@@ -446,6 +479,9 @@ public class RouteFragment extends Fragment {
             if(googleMap != null){
                 googleMap.moveCamera(CameraUpdateFactory.newLatLng(loc));
                 googleMap.animateCamera(CameraUpdateFactory.zoomTo(14), 4000, null);
+<<<<<<< HEAD
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
+=======
 >>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
             }
         }
@@ -453,7 +489,11 @@ public class RouteFragment extends Fragment {
 
     private void initMap(View v, Bundle savedInstanceState) {
 <<<<<<< HEAD
+<<<<<<< HEAD
         Log.d(TAG, "initMap");
+=======
+        Log.d(TAG,"initMap");
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 =======
         Log.d(TAG,"initMap");
 >>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
@@ -473,7 +513,11 @@ public class RouteFragment extends Fragment {
         googleMap = mMapView.getMap();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         //googleMap.getUiSettings().setZoomControlsEnabled(true);
+=======
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 =======
         googleMap.getUiSettings().setZoomControlsEnabled(true);
 >>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
@@ -483,6 +527,7 @@ public class RouteFragment extends Fragment {
 
         EnableMyLocation();
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(AppSettings.MAP_DEFAULT_LOCATION));
@@ -498,6 +543,8 @@ public class RouteFragment extends Fragment {
         });
 
 =======
+=======
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
         LatLng istanbul = new LatLng(41.0003186, 28.859703);
         //LatLng sakarya = new LatLng(40.7606417, 29.7248319);
 
@@ -518,6 +565,9 @@ public class RouteFragment extends Fragment {
 //                polyline.setColor(strokeColor);
 //            }
 //        });
+<<<<<<< HEAD
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
+=======
 >>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
     }
 
@@ -545,7 +595,10 @@ public class RouteFragment extends Fragment {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 =======
 >>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
     /**
@@ -566,8 +619,11 @@ public class RouteFragment extends Fragment {
     public void onStart() {
         super.onStart();
 <<<<<<< HEAD
+<<<<<<< HEAD
         lstMarkers = new ArrayList<>();
         CommManager.getInstance().SetResponseListener(this);
+=======
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
 =======
 >>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
     }
