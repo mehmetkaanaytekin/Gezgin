@@ -27,8 +27,22 @@ dependencies {
     compile 'com.android.support:support-v4:23.3.0'
     compile 'com.android.volley:volley:1.0.0'
     compile 'com.google.android.gms:play-services:8.4.0'
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+    compile 'com.google.maps.android:android-maps-utils:0.4+'
+    compile 'com.dmitrymalkovich.android:progress-fab:1.2'
+
+=======
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
+=======
+>>>>>>> parent of 60b3c64... AI-2.0 <Kaan Aytekin@Destroyer Overwrite local to https://github.com/mirketech/Gezgin.git
+
+
+=======
     compile 'com.google.android.gms:play-services-ads:8.4.0'
     compile 'com.google.android.gms:play-services-auth:8.4.0'
     compile 'com.google.android.gms:play-services-gcm:8.4.0'
     compile 'com.github.medyo:fancybuttons:1.7'
+>>>>>>> refs/remotes/origin/Kaan
 }
