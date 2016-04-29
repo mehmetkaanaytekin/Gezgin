@@ -80,7 +80,6 @@ public class MainActivity extends AppCompatActivity
 //        if (id == R.id.action_settings) {
 //            return true;
 //        }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -101,12 +100,20 @@ public class MainActivity extends AppCompatActivity
         Fragment fragment = null;
         String title = getTitleForFragment(viewId);
 
+        //TODO replace with yours fragments here !
         switch (viewId) {
             case R.id.nav_route:
                 fragment = new RouteFragment();
                 break;
-
-
+            case R.id.nav_manage:
+                fragment = null; // new LoginFragment();
+                break;
+            case R.id.nav_login:
+                fragment = null;
+                break;
+            case R.id.nav_greet:
+                fragment = null;
+                break;
         }
 
         if (fragment != null) {
@@ -128,15 +135,21 @@ public class MainActivity extends AppCompatActivity
 
     public String getTitleForFragment(int viewId) {
 
-        String title = "Bugün";
+        String title = "Gezgin";
 
         switch (viewId) {
 
             case R.id.nav_route:
-                title = "Harita";
+                title = getString(R.string.nav_route);
                 break;
             case R.id.nav_manage:
-                title = "Ayarlar";
+                title = getString(R.string.nav_settings);
+                break;
+            case R.id.nav_login:
+                title = getString(R.string.nav_login);
+                break;
+            case R.id.nav_greet:
+                title = getString(R.string.nav_greet);
                 break;
 
         }
