@@ -36,6 +36,7 @@ import com.mirketech.gezgin.comm.CommManager;
 import com.mirketech.gezgin.comm.GResponse;
 import com.mirketech.gezgin.comm.ICommResponse;
 import com.mirketech.gezgin.direction.DirectionManager;
+import com.mirketech.gezgin.models.SuggestModel;
 import com.mirketech.gezgin.places.PlacesManager;
 import com.mirketech.gezgin.util.AppSettings;
 
@@ -69,6 +70,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private OnFragmentInteractionListener mListener;
     private boolean isInterrupted = false;
     private List<Marker> lstMarkers;
+    private List<SuggestModel> lstSuggestionsData = new ArrayList<>();
 
 
     public RouteFragment() {
@@ -243,8 +245,18 @@ public class RouteFragment extends Fragment implements ICommResponse {
             JSONObject data = (JSONObject) response.Data;
 
             JSONObject result = data.getJSONObject("result").getJSONObject("geometry").getJSONObject("location");
+
             Double longitude = result.getDouble("lng");
             Double latitude = result.getDouble("lat");
+
+            SuggestModel suggestion = new SuggestModel();
+
+            suggestion.setLatitude(latitude);
+            suggestion.setLongitude(longitude);
+            suggestion.setName(data.getJSONObject("result").getString("name"));
+            suggestion.setDescription(data.getJSONObject("result").getString("formatted_address"));
+
+            lstSuggestionsData.add(suggestion);
 
             MarkerOptions mOpt = new MarkerOptions();
             mOpt.position(new LatLng(latitude, longitude));
