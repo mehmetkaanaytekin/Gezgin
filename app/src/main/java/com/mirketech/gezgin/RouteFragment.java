@@ -17,8 +17,10 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.dmitrymalkovich.android.ProgressFloatingActionButton;
@@ -32,6 +34,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.mirketech.gezgin.adapters.SuggestionAdapter;
 import com.mirketech.gezgin.comm.CommManager;
 import com.mirketech.gezgin.comm.GResponse;
 import com.mirketech.gezgin.comm.ICommResponse;
@@ -48,30 +51,43 @@ import java.util.List;
 
 
 /**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link RouteFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link RouteFragment#newInstance} factory method to
- * create an instance of this fragment.
+ *
  */
 public class RouteFragment extends Fragment implements ICommResponse {
 
     private static final String TAG = RouteFragment.class.getSimpleName();
-
+    SuggestionAdapter searchSuggestAdapter = null;
+    //Views
     private ListView lstSearchSuggestions;
-
     private ProgressFloatingActionButton progFabLoading;
-    private GoogleMap googleMap;
     private MapView mMapView;
     private FloatingActionButton mFabAction;
     private FloatingActionButton mFabClear;
-    private LatLng latestMyLocation;
+    //Listeners
     private OnFragmentInteractionListener mListener;
-    private boolean isInterrupted = false;
+    //Variables
+    private GoogleMap googleMap;
+    private LatLng latestMyLocation;
+    private volatile boolean isInterrupted = false;
+    //Data
     private List<Marker> lstMarkers;
-    private List<SuggestModel> lstSuggestionsData = new ArrayList<>();
+    private ArrayList<SuggestModel> lstSuggestionsData = new ArrayList<>();
+    private GoogleMap.OnMyLocationChangeListener myLocationChangeListener = new GoogleMap.OnMyLocationChangeListener() {
+        @Override
+        public void onMyLocationChange(Location location) {
 
+            //Log.d(TAG, "onMyLocationChange");
+
+            LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
+
+            latestMyLocation = loc;
+
+            if (googleMap != null && !isInterrupted) {
+                CameraUpdate update = CameraUpdateFactory.newLatLngZoom(loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
+                googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
+            }
+        }
+    };
 
     public RouteFragment() {
         // Required empty public constructor
@@ -119,8 +135,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
             public boolean onQueryTextSubmit(String query) {
                 Log.d(TAG, "onQueryTextSubmit query : " + query);
                 clearMap();
+
                 progFabLoading.setVisibility(View.VISIBLE);
                 mFabClear.setVisibility(View.VISIBLE);
+                lstSearchSuggestions.setVisibility(View.VISIBLE);
+                lstSearchSuggestions.bringToFront();
                 PlacesManager.getInstance(getActivity()).GetPlacesAutoComplete(query.trim());
 
 
@@ -137,6 +156,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
         MenuItemCompat.OnActionExpandListener expandListener = new MenuItemCompat.OnActionExpandListener() {
             @Override
             public boolean onMenuItemActionCollapse(MenuItem item) {
+
+                lstSearchSuggestions.setVisibility(View.GONE);
                 // Do something when action item collapses
                 return true;  // Return true to collapse action view
             }
@@ -177,7 +198,41 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
                 }
 
+            }
+        });
 
+        lstSearchSuggestions.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                SuggestModel data = lstSuggestionsData.get(position);
+
+                Log.e(TAG,"onItemClick : pos / id " + position + " / " + id);
+
+                LatLng loc = new LatLng(data.getLatitude(),data.getLongitude());
+                CameraUpdate update = CameraUpdateFactory.newLatLngZoom(loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
+                googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
+
+                for (Marker mrk: lstMarkers) {
+                    if(mrk.getPosition().latitude == data.getLatitude() && mrk.getPosition().longitude == data.getLongitude()){
+                        mrk.showInfoWindow();
+                        break;
+                    }
+                }
+
+                lstSearchSuggestions.animate().translationY(50 - lstSearchSuggestions.getHeight());
+
+
+            }
+        });
+        lstSearchSuggestions.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+
+                lstSearchSuggestions.animate().translationY(0);
+
+                return false;
             }
         });
 
@@ -197,6 +252,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     private void clearMap() {
         if (googleMap != null) {
+            lstSearchSuggestions.animate().translationY(0);
+            lstSuggestionsData.clear();
             googleMap.clear();
             lstMarkers.clear();
             mFabClear.setVisibility(View.INVISIBLE);
@@ -286,6 +343,19 @@ public class RouteFragment extends Fragment implements ICommResponse {
             googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
 
 
+
+
+            if(searchSuggestAdapter == null){
+                searchSuggestAdapter = new SuggestionAdapter(getContext(),lstSuggestionsData);
+            }
+
+            lstSearchSuggestions.setAdapter(searchSuggestAdapter);
+
+            searchSuggestAdapter.notifyDataSetChanged();
+
+
+
+
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -305,19 +375,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
         for (HashMap<String, String> item : placesList) {
 
-//            Log.d(TAG, "item desc : " + item.get("description"));
-//            Log.d(TAG, "item _id : " + item.get("_id"));
-//            Log.d(TAG, "item reference : " + item.get("reference"));
-
-
             PlacesManager.getInstance(getActivity()).GetPlaceDetails(item.get("place_id"));
-
-
         }
 
 
     }
-
 
     @Override
     public void onResponse(GResponse response) {
@@ -359,23 +421,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
         googleMap.setMyLocationEnabled(true);
     }
-
-    private GoogleMap.OnMyLocationChangeListener myLocationChangeListener = new GoogleMap.OnMyLocationChangeListener() {
-        @Override
-        public void onMyLocationChange(Location location) {
-
-            //Log.d(TAG, "onMyLocationChange");
-
-            LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
-
-            latestMyLocation = loc;
-
-            if (googleMap != null && !isInterrupted) {
-                CameraUpdate update = CameraUpdateFactory.newLatLngZoom(loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
-                googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
-            }
-        }
-    };
 
     private void initMap(View v, Bundle savedInstanceState) {
         Log.d(TAG, "initMap");
@@ -439,6 +484,12 @@ public class RouteFragment extends Fragment implements ICommResponse {
         mListener = null;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        lstMarkers = new ArrayList<>();
+        CommManager.getInstance().SetResponseListener(this);
+    }
 
     /**
      * This interface must be implemented by activities that contain this
@@ -452,13 +503,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
      */
     public interface OnFragmentInteractionListener {
         void onFragmentInteraction(Uri uri);
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        lstMarkers = new ArrayList<>();
-        CommManager.getInstance().SetResponseListener(this);
     }
 
 }
