@@ -24,8 +24,6 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.dmitrymalkovich.android.ProgressFloatingActionButton;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
@@ -42,6 +40,7 @@ import com.mirketech.gezgin.direction.DirectionManager;
 import com.mirketech.gezgin.models.SuggestModel;
 import com.mirketech.gezgin.places.PlacesManager;
 import com.mirketech.gezgin.util.AppSettings;
+import com.mirketech.gezgin.util.MapsHelper;
 
 import org.json.JSONObject;
 
@@ -72,22 +71,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
     //Data
     private List<Marker> lstMarkers;
     private ArrayList<SuggestModel> lstSuggestionsData = new ArrayList<>();
-    private GoogleMap.OnMyLocationChangeListener myLocationChangeListener = new GoogleMap.OnMyLocationChangeListener() {
-        @Override
-        public void onMyLocationChange(Location location) {
 
-            //Log.d(TAG, "onMyLocationChange");
-
-            LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
-
-            latestMyLocation = loc;
-
-            if (googleMap != null && !isInterrupted) {
-                CameraUpdate update = CameraUpdateFactory.newLatLngZoom(loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
-                googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
-            }
-        }
-    };
 
     public RouteFragment() {
         // Required empty public constructor
@@ -95,12 +79,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @return A new instance of fragment RouteFragment.
-     */
     public static RouteFragment newInstance() {
         RouteFragment fragment = new RouteFragment();
         Bundle args = new Bundle();
@@ -175,6 +153,40 @@ public class RouteFragment extends Fragment implements ICommResponse {
         super.onCreateOptionsMenu(menu, inflater);
     }
 
+    public void onButtonPressed(Uri uri) {
+        if (mListener != null) {
+            mListener.onFragmentInteraction(uri);
+        }
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof OnFragmentInteractionListener) {
+            mListener = (OnFragmentInteractionListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        lstMarkers = new ArrayList<>();
+        CommManager.getInstance().SetResponseListener(this);
+    }
+
+    public interface OnFragmentInteractionListener {
+        void onFragmentInteraction(Uri uri);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -208,14 +220,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
                 SuggestModel data = lstSuggestionsData.get(position);
 
-                Log.e(TAG,"onItemClick : pos / id " + position + " / " + id);
+                LatLng loc = new LatLng(data.getLatitude(), data.getLongitude());
+                MapsHelper.moveCamera(googleMap, loc);
 
-                LatLng loc = new LatLng(data.getLatitude(),data.getLongitude());
-                CameraUpdate update = CameraUpdateFactory.newLatLngZoom(loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
-                googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
-
-                for (Marker mrk: lstMarkers) {
-                    if(mrk.getPosition().latitude == data.getLatitude() && mrk.getPosition().longitude == data.getLongitude()){
+                for (Marker mrk : lstMarkers) {
+                    if (mrk.getPosition().latitude == data.getLatitude() && mrk.getPosition().longitude == data.getLongitude()) {
                         mrk.showInfoWindow();
                         break;
                     }
@@ -250,6 +259,24 @@ public class RouteFragment extends Fragment implements ICommResponse {
         return v;
     }
 
+
+    private GoogleMap.OnMyLocationChangeListener myLocationChangeListener = new GoogleMap.OnMyLocationChangeListener() {
+
+        @Override
+        public void onMyLocationChange(Location location) {
+
+            //Log.d(TAG, "onMyLocationChange");
+
+            LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
+
+            latestMyLocation = loc;
+
+            if (googleMap != null && !isInterrupted) {
+                MapsHelper.moveCamera(googleMap, loc);
+            }
+        }
+    };
+
     private void clearMap() {
         if (googleMap != null) {
             lstSearchSuggestions.animate().translationY(0);
@@ -258,6 +285,85 @@ public class RouteFragment extends Fragment implements ICommResponse {
             lstMarkers.clear();
             mFabClear.setVisibility(View.INVISIBLE);
         }
+    }
+
+    private void EnableMyLocation() {
+
+        Log.d(TAG, "EnableMyLocation");
+
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d(TAG, "EnableMyLocation permissions");
+            return;
+        }
+        Log.d(TAG, "setMyLocationEnabled");
+
+        googleMap.setMyLocationEnabled(true);
+    }
+
+    private void initMap(View v, Bundle savedInstanceState) {
+        Log.d(TAG, "initMap");
+
+        mMapView = (MapView) v.findViewById(R.id.mapView);
+        mMapView.onCreate(savedInstanceState);
+
+        mMapView.onResume();// needed to get the map to display immediately
+
+
+        try {
+            MapsInitializer.initialize(getActivity().getApplicationContext());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        googleMap = mMapView.getMap();
+
+        //googleMap.getUiSettings().setZoomControlsEnabled(true);
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
+
+        googleMap.setOnMyLocationChangeListener(myLocationChangeListener);
+
+        EnableMyLocation();
+
+
+        MapsHelper.moveCamera(googleMap, AppSettings.MAP_DEFAULT_LOCATION);
+
+
+        googleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+            @Override
+            public boolean onMyLocationButtonClick() {
+                isInterrupted = false;
+                return false;
+            }
+        });
+
+    }
+
+    @Override
+    public void onResponse(GResponse response) {
+        Log.d(TAG, "response received.");
+        if (!response.Status.equals(GResponse.ResponseStatus.Success)) {
+            Log.e(TAG, ".onResponse Status : " + response.Status);
+            return;
+        }
+
+
+        if (response.RequestType.equals(GResponse.RequestTypes.Places_Autocomplete)) {
+
+            parsePlacesAutoCompleteResponse(response);
+        }
+
+        if (response.RequestType.equals(GResponse.RequestTypes.Places_GetDetails)) {
+
+            parsePlaceDetailsResponse(response);
+        }
+
+        if (response.RequestType.equals(GResponse.RequestTypes.Direction)) {
+
+            parseDirectionResponse(response);
+        }
+
+
     }
 
     private void parseDirectionResponse(GResponse response) {
@@ -282,8 +388,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
             }
             LatLngBounds bounds = builder.build();
 
-            CameraUpdate update = CameraUpdateFactory.newLatLngBounds(bounds, AppSettings.CAMERA_DEFAULT_DIRECTION_PADDING_INPX);
-            googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
+            MapsHelper.moveCamera(googleMap, bounds);
 
 
             mFabClear.setVisibility(View.VISIBLE);
@@ -339,21 +444,16 @@ public class RouteFragment extends Fragment implements ICommResponse {
             }
             LatLngBounds bounds = builder.build();
 
-            CameraUpdate update = CameraUpdateFactory.newLatLngBounds(bounds, AppSettings.CAMERA_DEFAULT_DIRECTION_PADDING_INPX);
-            googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
+            MapsHelper.moveCamera(googleMap, bounds);
 
 
-
-
-            if(searchSuggestAdapter == null){
-                searchSuggestAdapter = new SuggestionAdapter(getContext(),lstSuggestionsData);
+            if (searchSuggestAdapter == null) {
+                searchSuggestAdapter = new SuggestionAdapter(getContext(), lstSuggestionsData);
             }
 
             lstSearchSuggestions.setAdapter(searchSuggestAdapter);
 
             searchSuggestAdapter.notifyDataSetChanged();
-
-
 
 
         } catch (Exception e) {
@@ -381,128 +481,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     }
 
-    @Override
-    public void onResponse(GResponse response) {
-        Log.d(TAG, "response received.");
-        if (!response.Status.equals(GResponse.ResponseStatus.Success)) {
-            Log.e(TAG, ".onResponse Status : " + response.Status);
-            return;
-        }
 
 
-        if (response.RequestType.equals(GResponse.RequestTypes.Places_Autocomplete)) {
 
-            parsePlacesAutoCompleteResponse(response);
-        }
-
-        if (response.RequestType.equals(GResponse.RequestTypes.Places_GetDetails)) {
-
-            parsePlaceDetailsResponse(response);
-        }
-
-        if (response.RequestType.equals(GResponse.RequestTypes.Direction)) {
-
-            parseDirectionResponse(response);
-        }
-
-
-    }
-
-    private void EnableMyLocation() {
-
-        Log.d(TAG, "EnableMyLocation");
-
-        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.d(TAG, "EnableMyLocation permissions");
-            return;
-        }
-        Log.d(TAG, "setMyLocationEnabled");
-
-        googleMap.setMyLocationEnabled(true);
-    }
-
-    private void initMap(View v, Bundle savedInstanceState) {
-        Log.d(TAG, "initMap");
-
-        mMapView = (MapView) v.findViewById(R.id.mapView);
-        mMapView.onCreate(savedInstanceState);
-
-        mMapView.onResume();// needed to get the map to display immediately
-
-
-        try {
-            MapsInitializer.initialize(getActivity().getApplicationContext());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        googleMap = mMapView.getMap();
-
-        //googleMap.getUiSettings().setZoomControlsEnabled(true);
-        googleMap.getUiSettings().setMapToolbarEnabled(false);
-
-        googleMap.setOnMyLocationChangeListener(myLocationChangeListener);
-
-        EnableMyLocation();
-
-
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(AppSettings.MAP_DEFAULT_LOCATION));
-        googleMap.animateCamera(CameraUpdateFactory.zoomTo(AppSettings.CAMERA_DEFAULT_ZOOM_LEVEL), AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
-
-
-        googleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
-            @Override
-            public boolean onMyLocationButtonClick() {
-                isInterrupted = false;
-                return false;
-            }
-        });
-
-    }
-
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        lstMarkers = new ArrayList<>();
-        CommManager.getInstance().SetResponseListener(this);
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(Uri uri);
-    }
 
 }
