@@ -56,18 +56,22 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     private static final String TAG = RouteFragment.class.getSimpleName();
     SuggestionAdapter searchSuggestAdapter = null;
+
     //Views
     private ListView lstSearchSuggestions;
     private ProgressFloatingActionButton progFabLoading;
     private MapView mMapView;
     private FloatingActionButton mFabAction;
     private FloatingActionButton mFabClear;
+
     //Listeners
     private OnFragmentInteractionListener mListener;
+
     //Variables
     private GoogleMap googleMap;
     private LatLng latestMyLocation;
     private volatile boolean isInterrupted = false;
+
     //Data
     private List<Marker> lstMarkers;
     private ArrayList<SuggestModel> lstSuggestionsData = new ArrayList<>();
@@ -113,11 +117,9 @@ public class RouteFragment extends Fragment implements ICommResponse {
             public boolean onQueryTextSubmit(String query) {
                 Log.d(TAG, "onQueryTextSubmit query : " + query);
                 clearMap();
-
-                progFabLoading.setVisibility(View.VISIBLE);
+                showLoading();
                 mFabClear.setVisibility(View.VISIBLE);
-                lstSearchSuggestions.setVisibility(View.VISIBLE);
-                lstSearchSuggestions.bringToFront();
+                showSearchSuggestions();
                 PlacesManager.getInstance(getActivity()).GetPlacesAutoComplete(query.trim());
 
 
@@ -135,7 +137,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
             @Override
             public boolean onMenuItemActionCollapse(MenuItem item) {
 
-                lstSearchSuggestions.setVisibility(View.GONE);
+                hideSearchSuggestions();
                 // Do something when action item collapses
                 return true;  // Return true to collapse action view
             }
@@ -209,7 +211,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
                     DirectionManager.getInstance(getActivity()).GetDirections(latestMyLocation, AppSettings.MAP_DEFAULT_LOCATION);//for testing
 
                 }
-
             }
         });
 
@@ -230,8 +231,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
                     }
                 }
 
-                lstSearchSuggestions.animate().translationY(50 - lstSearchSuggestions.getHeight());
-
+                animateOutSearchSuggestions();
 
             }
         });
@@ -239,7 +239,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
 
-                lstSearchSuggestions.animate().translationY(0);
+                animateInSearchSuggestions();
 
                 return false;
             }
@@ -255,7 +255,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
         initMap(v, savedInstanceState);
 
-
         return v;
     }
 
@@ -264,8 +263,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
         @Override
         public void onMyLocationChange(Location location) {
-
-            //Log.d(TAG, "onMyLocationChange");
 
             LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
 
@@ -466,12 +463,9 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     private void parsePlacesAutoCompleteResponse(GResponse response) {
 
-
         List<HashMap<String, String>> placesList = PlacesManager.getInstance(getActivity()).parsePlacesAutoComplete(response);
 
-        Log.d(TAG, "placesList.size : " + placesList.size());
-
-        progFabLoading.setVisibility(View.GONE);
+        hideLoading();
 
         for (HashMap<String, String> item : placesList) {
 
@@ -481,6 +475,30 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     }
 
+    private void showLoading(){
+        progFabLoading.setVisibility(View.VISIBLE);
+    }
+
+    private void hideLoading(){
+        progFabLoading.setVisibility(View.GONE);
+    }
+
+    private void showSearchSuggestions(){
+        lstSearchSuggestions.setVisibility(View.VISIBLE);
+        lstSearchSuggestions.bringToFront();
+    }
+
+    private void hideSearchSuggestions(){
+        lstSearchSuggestions.setVisibility(View.GONE);
+    }
+
+    private void animateOutSearchSuggestions(){
+        lstSearchSuggestions.animate().translationY(50 - lstSearchSuggestions.getHeight());
+    }
+
+    private void animateInSearchSuggestions(){
+        lstSearchSuggestions.animate().translationY(0);
+    }
 
 
 
