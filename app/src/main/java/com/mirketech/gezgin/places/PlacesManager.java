@@ -76,17 +76,15 @@ public class PlacesManager {
 
         VolleyManager vManager = VolleyManager.getInstance(appContext);
         RequestQueue queue = vManager.getRequestQueue();
-
+        GResponse.RequestTypes reqType = GResponse.RequestTypes.Places_GetDetails;
 
         JsonObjectRequest myReq = new JsonObjectRequest(Request.Method.POST,
                 PreparePlacesDetailsURL(place_id),
                 null,
-                createReqSuccessListener(GResponse.RequestTypes.Places_GetDetails),
-                createReqErrorListener(GResponse.RequestTypes.Places_GetDetails));
+                createReqSuccessListener(reqType),
+                createReqErrorListener(reqType));
 
         queue.add(myReq);
-
-
 
     }
 

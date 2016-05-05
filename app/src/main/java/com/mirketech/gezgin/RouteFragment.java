@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,7 +13,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -24,7 +22,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.dmitrymalkovich.android.ProgressFloatingActionButton;
 import com.google.android.gms.maps.GoogleMap;
@@ -65,6 +65,13 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private MapView mMapView;
     private FloatingActionButton mFabAction;
     private FloatingActionButton mFabClear;
+    private LinearLayout linlayOrigin;
+    private LinearLayout linlayDest;
+    private FloatingActionButton mFabOrigin;
+    private FloatingActionButton mFabDest;
+    private TextView txtOrigin;
+    private TextView txtDest;
+
 
     //Listeners
     private OnFragmentInteractionListener mListener;
@@ -73,6 +80,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private GoogleMap googleMap;
     private LatLng latestMyLocation;
     private volatile boolean isInterrupted = false;
+    private LatLng origin = null;
+    private LatLng destination = null;
 
     //Data
     private List<Marker> lstMarkers;
@@ -207,13 +216,36 @@ public class RouteFragment extends Fragment implements ICommResponse {
             public void onClick(View v) {
                 Log.d(TAG, "FabAction clicked.");
 
-                if (latestMyLocation != null) {
+                if (latestMyLocation != null && destination != null) {
 
-                    DirectionManager.getInstance(getActivity()).GetDirections(latestMyLocation, AppSettings.MAP_DEFAULT_LOCATION);//for testing
+                    if (origin == null) {
+                        origin = latestMyLocation;
+                    }
+                    DirectionManager.getInstance(getActivity()).GetDirections(origin, destination);
 
                 }
             }
         });
+
+/*
+        private LinearLayout linlayOrigin;
+        private LinearLayout linlayDest;
+        private FloatingActionButton mFabOrigin;
+        private FloatingActionButton mFabDest;
+        private TextView txtOrigin;
+        private TextView txtDest;*/
+
+        linlayOrigin = (LinearLayout) v.findViewById(R.id.linlayOrigin);
+        linlayDest = (LinearLayout) v.findViewById(R.id.linlayDest);
+        mFabOrigin = (FloatingActionButton) v.findViewById(R.id.fabOrigin);
+        mFabDest = (FloatingActionButton) v.findViewById(R.id.fabDest);
+        txtOrigin = (TextView) v.findViewById(R.id.txtOrigin);
+        txtDest = (TextView) v.findViewById(R.id.txtDest);
+
+        txtOrigin.setText(getString(R.string.my_location));
+
+        txtDest.setText("");
+
 
         lstSearchSuggestions.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -223,7 +255,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
                 SuggestModel data = lstSuggestionsData.get(position);
 
                 LatLng loc = new LatLng(data.getLatitude(), data.getLongitude());
-                MapsHelper.moveCamera(googleMap, loc);
+                MapsHelper.moveCamera(googleMap, loc,AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
 
                 for (Marker mrk : lstMarkers) {
                     if (mrk.getPosition().latitude == data.getLatitude() && mrk.getPosition().longitude == data.getLongitude()) {
@@ -264,8 +296,17 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private GoogleMap.OnMarkerClickListener gMapMarkerClickListener = new GoogleMap.OnMarkerClickListener() {
         @Override
         public boolean onMarkerClick(Marker marker) {
+
+            isInterrupted = true;
+
             animateOutSearchSuggestions(false);
             animateInActionButton(true);
+
+            txtDest.setText(marker.getTitle());
+            animateInDestination(true);
+
+            destination = marker.getPosition();
+
             return false;
         }
     };
@@ -280,8 +321,10 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
             latestMyLocation = loc;
 
+            animateInOrigin(true);
+
             if (googleMap != null && !isInterrupted) {
-                MapsHelper.moveCamera(googleMap, loc);
+                MapsHelper.moveCamera(googleMap, loc,AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
             }
         }
     };
@@ -297,6 +340,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
             animateOutActionButton(true);
             animateOutSearchSuggestions(true);
             animateOutClearButton(true);
+            animateOutDestination(true);
         }
     }
 
@@ -322,7 +366,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
         switch (requestCode) {
             case LOCATION_REQUEST_CODE: {
-                if (grantResults.length > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED || grantResults[1] == PackageManager.PERMISSION_GRANTED )) {
+                if (grantResults.length > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED || grantResults[1] == PackageManager.PERMISSION_GRANTED)) {
 
                     googleMap.setMyLocationEnabled(true);
                 }
@@ -354,11 +398,20 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
         googleMap.setOnMyLocationChangeListener(myLocationChangeListener);
         googleMap.setOnMarkerClickListener(gMapMarkerClickListener);
+        googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+
+                String title = Location.convert(latLng.latitude, Location.FORMAT_DEGREES) + " , " + Location.convert(latLng.longitude, Location.FORMAT_DEGREES);
+                Marker marker = googleMap.addMarker(new MarkerOptions().position(latLng).title(title));
+                lstMarkers.add(marker);
+            }
+        });
 
         EnableMyLocation();
 
 
-        MapsHelper.moveCamera(googleMap, AppSettings.MAP_DEFAULT_LOCATION);
+        MapsHelper.moveCamera(googleMap, AppSettings.MAP_DEFAULT_LOCATION,AppSettings.CAMERA_DEFAULT_ZOOM_LEVEL);
 
 
         googleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
@@ -395,6 +448,9 @@ public class RouteFragment extends Fragment implements ICommResponse {
             parseDirectionResponse(response);
         }
 
+    }
+
+    private void parsePlaceDetailsLatLngResponse(GResponse response) {
 
     }
 
@@ -451,6 +507,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
             suggestion.setName(data.getJSONObject("result").getString("name"));
             suggestion.setDescription(data.getJSONObject("result").getString("formatted_address"));
 
+
             lstSuggestionsData.add(suggestion);
 
             MarkerOptions mOpt = new MarkerOptions();
@@ -478,7 +535,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
             LatLngBounds bounds = builder.build();
 
             MapsHelper.moveCamera(googleMap, bounds);
-
 
             if (searchSuggestAdapter == null) {
                 searchSuggestAdapter = new SuggestionAdapter(getContext(), lstSuggestionsData);
@@ -538,7 +594,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
             mFabClear.animate().translationY(0).setListener(new ViewAnimatorListener(false, show, mFabClear));
         } else {
             if (mFabClear.getVisibility() == View.GONE) {
-                mFabClear.setY( mMapView.getHeight() + 50 + mFabClear.getHeight());
+                mFabClear.setY(mMapView.getHeight() + 50 + mFabClear.getHeight());
                 mFabClear.animate().translationY(0).setListener(new ViewAnimatorListener(false, show, mFabClear));
             }
         }
@@ -564,5 +620,40 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     }
 
+
+    private void animateInOrigin(final boolean show) {
+        if (!show) {
+
+            linlayOrigin.setX(50 - linlayOrigin.getWidth());
+            linlayOrigin.animate().translationX(0).setListener(new ViewAnimatorListener(false, show, linlayOrigin));
+        } else {
+            if (linlayOrigin.getVisibility() == View.GONE) {
+                linlayOrigin.setX(50 - linlayOrigin.getWidth());
+                linlayOrigin.animate().translationX(0).setListener(new ViewAnimatorListener(false, show, linlayOrigin));
+            }
+        }
+    }
+
+    private void animateOutOrigin(final boolean hide) {
+        linlayOrigin.animate().translationX(50 - linlayOrigin.getWidth()).setListener(new ViewAnimatorListener(hide, false, linlayOrigin));
+    }
+
+
+    private void animateInDestination(final boolean show) {
+        if (!show) {
+
+            linlayDest.setX(50 + mMapView.getWidth() + linlayDest.getWidth());
+            linlayDest.animate().translationX(0).setListener(new ViewAnimatorListener(false, show, linlayDest));
+        } else {
+            if (linlayDest.getVisibility() == View.GONE) {
+                linlayDest.setX(50 + mMapView.getWidth() + linlayDest.getWidth());
+                linlayDest.animate().translationX(0).setListener(new ViewAnimatorListener(false, show, linlayDest));
+            }
+        }
+    }
+
+    private void animateOutDestination(final boolean hide) {
+        linlayDest.animate().translationX(50 + mMapView.getWidth() + linlayDest.getWidth()).setListener(new ViewAnimatorListener(hide, false, linlayDest));
+    }
 
 }

@@ -11,9 +11,9 @@ import com.google.android.gms.maps.model.LatLngBounds;
  */
 public class MapsHelper {
 
-    public static void moveCamera(GoogleMap googleMap ,LatLng location){
+    public static void moveCamera(GoogleMap googleMap ,LatLng location,int zoom){
         if(googleMap != null){
-            CameraUpdate update = CameraUpdateFactory.newLatLngZoom(location, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
+            CameraUpdate update = CameraUpdateFactory.newLatLngZoom(location,zoom);
             googleMap.animateCamera(update, AppSettings.CAMERA_DEFAULT_ANIMATE_DURATION_MS, null);
         }
 
