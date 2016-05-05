@@ -35,6 +35,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.mirketech.gezgin.adapters.CustomInfoWinAdapter;
 import com.mirketech.gezgin.adapters.SuggestionAdapter;
 import com.mirketech.gezgin.comm.CommManager;
 import com.mirketech.gezgin.comm.GResponse;
@@ -246,7 +247,35 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
         txtDest.setText("");
 
+        mFabOrigin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
+                for (Marker mrk: lstMarkers) {
+                    if(mrk.isInfoWindowShown()){
+                        txtOrigin.setText(mrk.getTitle());
+                        origin = mrk.getPosition();
+                    }
+                }
+            }
+        });
+
+        mFabDest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                for (Marker mrk: lstMarkers) {
+                    if(mrk.isInfoWindowShown()){
+                        txtDest.setText(mrk.getTitle());
+                        destination = mrk.getPosition();
+                        mFabDest.setBackgroundColor(android.R.color.holo_green_light);
+                        break;
+                    }
+                }
+
+
+            }
+        });
         lstSearchSuggestions.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
@@ -302,10 +331,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
             animateOutSearchSuggestions(false);
             animateInActionButton(true);
 
-            txtDest.setText(marker.getTitle());
             animateInDestination(true);
-
-            destination = marker.getPosition();
 
             return false;
         }
@@ -341,6 +367,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
             animateOutSearchSuggestions(true);
             animateOutClearButton(true);
             animateOutDestination(true);
+            origin = null;
+            txtOrigin.setText(getString(R.string.my_location));
         }
     }
 
@@ -408,6 +436,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
             }
         });
 
+        googleMap.setInfoWindowAdapter(new CustomInfoWinAdapter(getActivity()));
+
         EnableMyLocation();
 
 
@@ -418,6 +448,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
             @Override
             public boolean onMyLocationButtonClick() {
                 isInterrupted = false;
+                origin = null;
+                txtOrigin.setText(getString(R.string.my_location));
                 return false;
             }
         });
@@ -447,10 +479,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
             parseDirectionResponse(response);
         }
-
-    }
-
-    private void parsePlaceDetailsLatLngResponse(GResponse response) {
 
     }
 
@@ -624,11 +652,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private void animateInOrigin(final boolean show) {
         if (!show) {
 
-            linlayOrigin.setX(50 - linlayOrigin.getWidth());
+            linlayOrigin.setX(0 - linlayOrigin.getWidth());
             linlayOrigin.animate().translationX(0).setListener(new ViewAnimatorListener(false, show, linlayOrigin));
         } else {
             if (linlayOrigin.getVisibility() == View.GONE) {
-                linlayOrigin.setX(50 - linlayOrigin.getWidth());
+                linlayOrigin.setX(0 - linlayOrigin.getWidth());
                 linlayOrigin.animate().translationX(0).setListener(new ViewAnimatorListener(false, show, linlayOrigin));
             }
         }
