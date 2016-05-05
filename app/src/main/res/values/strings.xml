@@ -33,4 +33,6 @@
     <string name="rememberuserinfo">Kullanıcı bilgilerimi hatırla</string>
     <string name="icon_facebook">&#xf230;</string>
     <string name="icon_google">&#xf1a0;</string>
+
+    <string name="my_location">Konumum</string>
 </resources>

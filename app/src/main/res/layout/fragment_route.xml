@@ -1,8 +1,4 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-<<<<<<< HEAD
-=======
-
->>>>>>> Kaan
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -13,8 +9,75 @@
         android:id="@+id/lstSearchSuggestions"
         android:layout_width="match_parent"
         android:layout_height="250dp"
+        android:layout_margin="5dp"
+        android:padding="20dp"
         android:layout_gravity="center_horizontal|top"
+        android:background="@color/colorPrimary"
         android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/linlayOrigin"
+        android:layout_width="96dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left|center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        >
+        <android.support.design.widget.FloatingActionButton xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/fabOrigin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:animateLayoutChanges="true"
+            android:clickable="true"
+            android:src="@android:drawable/ic_menu_myplaces"
+            app:backgroundTint="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/txtOrigin"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:textAlignment="center"
+            android:layout_marginTop="10dp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimary"
+            android:text="Konumum"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linlayDest"
+        android:layout_width="96dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        >
+
+        <android.support.design.widget.FloatingActionButton xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/fabDest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:animateLayoutChanges="true"
+            android:clickable="true"
+            android:src="@android:drawable/ic_menu_directions"
+            app:backgroundTint="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/txtDest"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:textAlignment="center"
+            android:layout_marginTop="10dp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimary"
+            android:text=""/>
+
+    </LinearLayout>
+
+
+
 
     <android.support.design.widget.FloatingActionButton xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/fabAction"
@@ -25,6 +88,7 @@
         android:animateLayoutChanges="true"
         android:clickable="true"
         android:src="@android:drawable/ic_input_add"
+        android:visibility="gone"
         app:backgroundTint="#FFFFFF" />
 
     <android.support.design.widget.FloatingActionButton xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -36,7 +100,7 @@
         android:animateLayoutChanges="true"
         android:clickable="true"
         android:src="@android:drawable/ic_menu_revert"
-        android:visibility="invisible"
+        android:visibility="gone"
         app:backgroundTint="#FFFFFF" />
 
     <com.dmitrymalkovich.android.ProgressFloatingActionButton
@@ -60,13 +124,11 @@
 
     </com.dmitrymalkovich.android.ProgressFloatingActionButton>
 
-<<<<<<< HEAD
-=======
     <com.google.android.gms.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         class="com.google.android.gms.maps.SupportMapFragment" />
->>>>>>> Kaan
+
 
 </FrameLayout>
