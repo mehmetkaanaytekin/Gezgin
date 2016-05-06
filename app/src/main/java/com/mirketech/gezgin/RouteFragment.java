@@ -228,14 +228,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
             }
         });
 
-/*
-        private LinearLayout linlayOrigin;
-        private LinearLayout linlayDest;
-        private FloatingActionButton mFabOrigin;
-        private FloatingActionButton mFabDest;
-        private TextView txtOrigin;
-        private TextView txtDest;*/
-
         linlayOrigin = (LinearLayout) v.findViewById(R.id.linlayOrigin);
         linlayDest = (LinearLayout) v.findViewById(R.id.linlayDest);
         mFabOrigin = (FloatingActionButton) v.findViewById(R.id.fabOrigin);
@@ -251,10 +243,13 @@ public class RouteFragment extends Fragment implements ICommResponse {
             @Override
             public void onClick(View v) {
 
-                for (Marker mrk: lstMarkers) {
-                    if(mrk.isInfoWindowShown()){
+                for (Marker mrk : lstMarkers) {
+                    if (mrk.isInfoWindowShown()) {
                         txtOrigin.setText(mrk.getTitle());
                         origin = mrk.getPosition();
+                        if (destination != null) {
+                            animateInActionButton(true);
+                        }
                     }
                 }
             }
@@ -264,11 +259,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
             @Override
             public void onClick(View v) {
 
-                for (Marker mrk: lstMarkers) {
-                    if(mrk.isInfoWindowShown()){
+                for (Marker mrk : lstMarkers) {
+                    if (mrk.isInfoWindowShown()) {
                         txtDest.setText(mrk.getTitle());
                         destination = mrk.getPosition();
-                        mFabDest.setBackgroundColor(android.R.color.holo_green_light);
+                        animateInActionButton(true);
                         break;
                     }
                 }
@@ -284,11 +279,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
                 SuggestModel data = lstSuggestionsData.get(position);
 
                 LatLng loc = new LatLng(data.getLatitude(), data.getLongitude());
-                MapsHelper.moveCamera(googleMap, loc,AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
+                MapsHelper.moveCamera(googleMap, loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
 
                 for (Marker mrk : lstMarkers) {
                     if (mrk.getPosition().latitude == data.getLatitude() && mrk.getPosition().longitude == data.getLongitude()) {
-                        animateInActionButton(true);
+                        animateInDestination(true);
                         mrk.showInfoWindow();
                         break;
                     }
@@ -329,8 +324,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
             isInterrupted = true;
 
             animateOutSearchSuggestions(false);
-            animateInActionButton(true);
-
+            animateInClearButton(true);
             animateInDestination(true);
 
             return false;
@@ -350,7 +344,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
             animateInOrigin(true);
 
             if (googleMap != null && !isInterrupted) {
-                MapsHelper.moveCamera(googleMap, loc,AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
+                MapsHelper.moveCamera(googleMap, loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
             }
         }
     };
@@ -368,6 +362,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
             animateOutClearButton(true);
             animateOutDestination(true);
             origin = null;
+            destination = null;
+            txtDest.setText("");
             txtOrigin.setText(getString(R.string.my_location));
         }
     }
@@ -441,7 +437,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
         EnableMyLocation();
 
 
-        MapsHelper.moveCamera(googleMap, AppSettings.MAP_DEFAULT_LOCATION,AppSettings.CAMERA_DEFAULT_ZOOM_LEVEL);
+        MapsHelper.moveCamera(googleMap, AppSettings.MAP_DEFAULT_LOCATION, AppSettings.CAMERA_DEFAULT_ZOOM_LEVEL);
 
 
         googleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
@@ -683,5 +679,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private void animateOutDestination(final boolean hide) {
         linlayDest.animate().translationX(50 + mMapView.getWidth() + linlayDest.getWidth()).setListener(new ViewAnimatorListener(hide, false, linlayDest));
     }
+
+
+
 
 }
