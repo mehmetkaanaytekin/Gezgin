@@ -22,10 +22,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.bowyer.app.fabtoolbar.FabToolbar;
 import com.dmitrymalkovich.android.ProgressFloatingActionButton;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -72,6 +74,10 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private FloatingActionButton mFabDest;
     private TextView txtOrigin;
     private TextView txtDest;
+    private FabToolbar mFabToolbar;
+    private ImageButton btnRouteSettings;
+    private ImageButton btnCreateRoute;
+
 
 
     //Listeners
@@ -210,13 +216,19 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
         lstSearchSuggestions = (ListView) v.findViewById(R.id.lstSearchSuggestions);
         progFabLoading = (ProgressFloatingActionButton) v.findViewById(R.id.progFabLoading);
-
+        mFabToolbar = (FabToolbar) v.findViewById(R.id.fabtoolbar);
+        btnRouteSettings = (ImageButton)v.findViewById(R.id.btnTbarRouteSettings);
+        btnCreateRoute = (ImageButton)v.findViewById(R.id.btnTbarCreateRoute);
         mFabAction = (FloatingActionButton) v.findViewById(R.id.fabAction);
         mFabAction.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.d(TAG, "FabAction clicked.");
 
+                mFabToolbar.expandFab();
+                mFabToolbar.bringToFront();
+
+                /*
                 if (latestMyLocation != null && destination != null) {
 
                     if (origin == null) {
@@ -225,6 +237,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
                     DirectionManager.getInstance(getActivity()).GetDirections(origin, destination);
 
                 }
+                */
             }
         });
 
@@ -234,10 +247,9 @@ public class RouteFragment extends Fragment implements ICommResponse {
         mFabDest = (FloatingActionButton) v.findViewById(R.id.fabDest);
         txtOrigin = (TextView) v.findViewById(R.id.txtOrigin);
         txtDest = (TextView) v.findViewById(R.id.txtDest);
-
         txtOrigin.setText(getString(R.string.my_location));
-
         txtDest.setText("");
+
 
         mFabOrigin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -311,6 +323,34 @@ public class RouteFragment extends Fragment implements ICommResponse {
             }
         });
 
+
+        mFabToolbar.setFab(mFabAction);
+
+        btnCreateRoute.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                mFabToolbar.slideOutFab();
+
+                if (latestMyLocation != null && destination != null) {
+
+                    if (origin == null) {
+                        origin = latestMyLocation;
+                    }
+                    showLoading();
+                    DirectionManager.getInstance(getActivity()).GetDirections(origin, destination);
+
+                }
+            }
+        });
+
+        btnRouteSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
         initMap(v, savedInstanceState);
 
         return v;
@@ -357,7 +397,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
             if (searchSuggestAdapter != null) {
                 searchSuggestAdapter.notifyDataSetChanged();
             }
-            animateOutActionButton(true);
+
             animateOutSearchSuggestions(true);
             animateOutClearButton(true);
             animateOutDestination(true);
@@ -365,6 +405,12 @@ public class RouteFragment extends Fragment implements ICommResponse {
             destination = null;
             txtDest.setText("");
             txtOrigin.setText(getString(R.string.my_location));
+
+            if(mFabToolbar.isFabExpanded()){
+                mFabToolbar.slideOutFab();
+            }
+
+            animateOutActionButton(true);
         }
     }
 
@@ -457,6 +503,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
         Log.d(TAG, "response received.");
         if (!response.Status.equals(GResponse.ResponseStatus.Success)) {
             Log.e(TAG, ".onResponse Status : " + response.Status);
+            hideLoading();
             return;
         }
 
@@ -475,6 +522,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
             parseDirectionResponse(response);
         }
+
+        hideLoading();
 
     }
 
@@ -609,16 +658,16 @@ public class RouteFragment extends Fragment implements ICommResponse {
     }
 
     private void animateOutClearButton(final boolean hide) {
-        mFabClear.animate().translationY(50 + mFabClear.getHeight()).setListener(new ViewAnimatorListener(hide, false, mFabClear));
+        mFabClear.animate().translationY(0 - mFabClear.getHeight()).setListener(new ViewAnimatorListener(hide, false, mFabClear));
     }
 
     private void animateInClearButton(final boolean show) {
         if (!show) {
-            mFabClear.setY(mMapView.getHeight() + 50 + mFabClear.getHeight());
+            mFabClear.setY( 0 - mFabClear.getHeight());
             mFabClear.animate().translationY(0).setListener(new ViewAnimatorListener(false, show, mFabClear));
         } else {
             if (mFabClear.getVisibility() == View.GONE) {
-                mFabClear.setY(mMapView.getHeight() + 50 + mFabClear.getHeight());
+                mFabClear.setY( 0 - mFabClear.getHeight());
                 mFabClear.animate().translationY(0).setListener(new ViewAnimatorListener(false, show, mFabClear));
             }
         }
@@ -662,7 +711,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
         linlayOrigin.animate().translationX(50 - linlayOrigin.getWidth()).setListener(new ViewAnimatorListener(hide, false, linlayOrigin));
     }
 
-
     private void animateInDestination(final boolean show) {
         if (!show) {
 
@@ -679,8 +727,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private void animateOutDestination(final boolean hide) {
         linlayDest.animate().translationX(50 + mMapView.getWidth() + linlayDest.getWidth()).setListener(new ViewAnimatorListener(hide, false, linlayDest));
     }
-
-
 
 
 }
