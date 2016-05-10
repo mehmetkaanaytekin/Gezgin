@@ -112,17 +112,9 @@
                 android:layout_weight="1"
                 android:scaleType="center"
                 android:background="@android:color/transparent"
-                android:src="@android:drawable/ic_menu_camera" />
+                android:src="@android:drawable/ic_menu_manage" />
 
-            <ImageButton
-                android:id="@+id/btnTbarSecondButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_centerHorizontal="true"
-                android:layout_weight="1"
-                android:scaleType="center"
-                android:background="@android:color/transparent"
-                android:src="@android:drawable/ic_menu_gallery" />
+
 
             <ImageButton
                 android:id="@+id/btnTbarCreateRoute"

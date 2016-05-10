@@ -15,6 +15,10 @@ public class AppSettings {
 
     public static LatLng MAP_DEFAULT_LOCATION                       = new LatLng(41.0003186, 28.859703);
 
+    public static boolean ROUTE_AVOID_TOLLS                         = false;
+    public static boolean ROUTE_AVOID_HIGHWAYS                      = false;
+    public static boolean ROUTE_AVOID_FERRIES                       = false;
+
 
 
 

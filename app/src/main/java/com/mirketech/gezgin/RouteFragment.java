@@ -27,8 +27,9 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.afollestad.materialdialogs.Theme;
 import com.bowyer.app.fabtoolbar.FabToolbar;
-
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
@@ -76,7 +77,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private FabToolbar mFabToolbar;
     private ImageButton btnRouteSettings;
     private ImageButton btnCreateRoute;
-
 
 
     //Listeners
@@ -191,7 +191,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
     public void onDetach() {
         super.onDetach();
 
-        if(googleMap != null){
+        if (googleMap != null) {
             mMapView.onPause();
         }
 
@@ -219,8 +219,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
         lstSearchSuggestions = (ListView) v.findViewById(R.id.lstSearchSuggestions);
         mFabToolbar = (FabToolbar) v.findViewById(R.id.fabtoolbar);
-        btnRouteSettings = (ImageButton)v.findViewById(R.id.btnTbarRouteSettings);
-        btnCreateRoute = (ImageButton)v.findViewById(R.id.btnTbarCreateRoute);
+        btnRouteSettings = (ImageButton) v.findViewById(R.id.btnTbarRouteSettings);
+        btnCreateRoute = (ImageButton) v.findViewById(R.id.btnTbarCreateRoute);
         mFabAction = (FloatingActionButton) v.findViewById(R.id.fabAction);
         mFabAction.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -339,6 +339,63 @@ public class RouteFragment extends Fragment implements ICommResponse {
             @Override
             public void onClick(View v) {
 
+                MaterialDialog dialog = new MaterialDialog.Builder(getActivity())
+                        .title(getString(R.string.route_settings))
+                        .items(R.array.arr_route_settings)
+                        .itemsCallbackMultiChoice(null, new MaterialDialog.ListCallbackMultiChoice() {
+                            @Override
+                            public boolean onSelection(MaterialDialog dialog, Integer[] which, CharSequence[] text) {
+
+                                for (int i = 0; i < which.length; i++) {
+                                    switch (which[i]) {
+                                        case 0:
+                                            AppSettings.ROUTE_AVOID_TOLLS = true;
+                                            break;
+                                        case 1:
+                                            AppSettings.ROUTE_AVOID_HIGHWAYS = true;
+                                            break;
+                                        case 2:
+                                            AppSettings.ROUTE_AVOID_FERRIES = true;
+                                            break;
+
+                                    }
+                                }
+
+                                return true;
+                            }
+                        })
+                        .positiveText(getString(R.string.route_settings_dialog_save))
+                        .theme(Theme.DARK)
+                        .show();
+
+                ArrayList<Integer> lstIndices = new ArrayList<Integer>();
+
+                if(AppSettings.ROUTE_AVOID_TOLLS){
+                    lstIndices.add(0);
+                }
+                if(AppSettings.ROUTE_AVOID_HIGHWAYS){
+                    lstIndices.add(1);
+                }
+                if(AppSettings.ROUTE_AVOID_FERRIES){
+                    lstIndices.add(2);
+                }
+
+
+                if(lstIndices.size() > 0){
+
+                    Integer selectedIndices[] = new Integer[lstIndices.size()];
+
+                    for (int i=0;i<lstIndices.size();i++){
+                        selectedIndices[i] = lstIndices.get(i);
+                    }
+
+                    dialog.setSelectedIndices(selectedIndices);
+                }
+
+
+
+
+
             }
         });
 
@@ -397,7 +454,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
             txtDest.setText("");
             txtOrigin.setText(getString(R.string.my_location));
 
-            if(mFabToolbar.isFabExpanded()){
+            if (mFabToolbar.isFabExpanded()) {
                 mFabToolbar.slideOutFab();
             }
 
@@ -458,13 +515,12 @@ public class RouteFragment extends Fragment implements ICommResponse {
         googleMap.getUiSettings().setCompassEnabled(false);
 
 
-
         googleMap.setOnMyLocationChangeListener(myLocationChangeListener);
         googleMap.setOnMarkerClickListener(gMapMarkerClickListener);
         googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                if(mFabToolbar.isFabExpanded()){
+                if (mFabToolbar.isFabExpanded()) {
                     mFabToolbar.slideOutFab();
                 }
             }
@@ -652,11 +708,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     private void animateInClearButton(final boolean show) {
         if (!show) {
-            mFabClear.setY( 0 - mFabClear.getHeight());
+            mFabClear.setY(0 - mFabClear.getHeight());
             mFabClear.animate().translationY(0).setListener(new ViewAnimatorListener(false, show, mFabClear));
         } else {
             if (mFabClear.getVisibility() == View.GONE) {
-                mFabClear.setY( 0 - mFabClear.getHeight());
+                mFabClear.setY(0 - mFabClear.getHeight());
                 mFabClear.animate().translationY(0).setListener(new ViewAnimatorListener(false, show, mFabClear));
             }
         }
@@ -716,7 +772,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private void animateOutDestination(final boolean hide) {
         linlayDest.animate().translationX(50 + mMapView.getWidth() + linlayDest.getWidth()).setListener(new ViewAnimatorListener(hide, false, linlayDest));
     }
-
 
 
 }
