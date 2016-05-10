@@ -112,7 +112,7 @@
                 android:layout_weight="1"
                 android:scaleType="center"
                 android:background="@android:color/transparent"
-                android:src="@drawable/ic_menu_camera" />
+                android:src="@android:drawable/ic_menu_camera" />
 
             <ImageButton
                 android:id="@+id/btnTbarSecondButton"
@@ -122,7 +122,7 @@
                 android:layout_weight="1"
                 android:scaleType="center"
                 android:background="@android:color/transparent"
-                android:src="@drawable/ic_menu_gallery" />
+                android:src="@android:drawable/ic_menu_gallery" />
 
             <ImageButton
                 android:id="@+id/btnTbarCreateRoute"
@@ -132,7 +132,7 @@
                 android:layout_weight="1"
                 android:scaleType="center"
                 android:background="@android:color/transparent"
-                android:src="@drawable/ic_menu_send" />
+                android:src="@android:drawable/ic_menu_send" />
 
         </LinearLayout>
 
@@ -150,26 +150,7 @@
         android:visibility="gone"
         app:backgroundTint="#FFFFFF" />
 
-    <com.dmitrymalkovich.android.ProgressFloatingActionButton
-        android:id="@+id/progFabLoading"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal|top"
-        android:layout_margin="@dimen/fab_margin"
-        android:visibility="gone">
 
-        <android.support.design.widget.FloatingActionButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@android:drawable/ic_menu_rotate"
-            app:backgroundTint="#FFFFFF" />
-
-        <ProgressBar
-            style="@style/Widget.AppCompat.ProgressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-    </com.dmitrymalkovich.android.ProgressFloatingActionButton>
 
     <com.google.android.gms.maps.MapView
         android:id="@+id/mapView"

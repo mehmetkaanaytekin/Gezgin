@@ -28,7 +28,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.bowyer.app.fabtoolbar.FabToolbar;
-import com.dmitrymalkovich.android.ProgressFloatingActionButton;
+
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
@@ -64,7 +64,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     //Views
     private ListView lstSearchSuggestions;
-    private ProgressFloatingActionButton progFabLoading;
     private MapView mMapView;
     private FloatingActionButton mFabAction;
     private FloatingActionButton mFabClear;
@@ -135,7 +134,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
             public boolean onQueryTextSubmit(String query) {
                 Log.d(TAG, "onQueryTextSubmit query : " + query);
                 clearMap();
-                showLoading();
                 animateInClearButton(true);
                 animateInSearchSuggestions(true);
                 PlacesManager.getInstance(getActivity()).GetPlacesAutoComplete(query.trim());
@@ -192,6 +190,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
     @Override
     public void onDetach() {
         super.onDetach();
+
+        if(googleMap != null){
+            mMapView.onPause();
+        }
+
         mListener = null;
     }
 
@@ -215,7 +218,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
                 false);
 
         lstSearchSuggestions = (ListView) v.findViewById(R.id.lstSearchSuggestions);
-        progFabLoading = (ProgressFloatingActionButton) v.findViewById(R.id.progFabLoading);
         mFabToolbar = (FabToolbar) v.findViewById(R.id.fabtoolbar);
         btnRouteSettings = (ImageButton)v.findViewById(R.id.btnTbarRouteSettings);
         btnCreateRoute = (ImageButton)v.findViewById(R.id.btnTbarCreateRoute);
@@ -228,16 +230,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
                 mFabToolbar.expandFab();
                 mFabToolbar.bringToFront();
 
-                /*
-                if (latestMyLocation != null && destination != null) {
-
-                    if (origin == null) {
-                        origin = latestMyLocation;
-                    }
-                    DirectionManager.getInstance(getActivity()).GetDirections(origin, destination);
-
-                }
-                */
             }
         });
 
@@ -337,7 +329,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
                     if (origin == null) {
                         origin = latestMyLocation;
                     }
-                    showLoading();
                     DirectionManager.getInstance(getActivity()).GetDirections(origin, destination);
 
                 }
@@ -463,11 +454,21 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
         googleMap = mMapView.getMap();
 
-        //googleMap.getUiSettings().setZoomControlsEnabled(true);
         googleMap.getUiSettings().setMapToolbarEnabled(false);
+        googleMap.getUiSettings().setCompassEnabled(false);
+
+
 
         googleMap.setOnMyLocationChangeListener(myLocationChangeListener);
         googleMap.setOnMarkerClickListener(gMapMarkerClickListener);
+        googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                if(mFabToolbar.isFabExpanded()){
+                    mFabToolbar.slideOutFab();
+                }
+            }
+        });
         googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng latLng) {
@@ -503,7 +504,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
         Log.d(TAG, "response received.");
         if (!response.Status.equals(GResponse.ResponseStatus.Success)) {
             Log.e(TAG, ".onResponse Status : " + response.Status);
-            hideLoading();
             return;
         }
 
@@ -523,7 +523,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
             parseDirectionResponse(response);
         }
 
-        hideLoading();
 
     }
 
@@ -630,7 +629,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
         List<HashMap<String, String>> placesList = PlacesManager.getInstance(getActivity()).parsePlacesAutoComplete(response);
 
-        hideLoading();
 
         for (HashMap<String, String> item : placesList) {
 
@@ -638,15 +636,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
         }
 
 
-    }
-
-    private void showLoading() {
-        progFabLoading.setVisibility(View.VISIBLE);
-        progFabLoading.bringToFront();
-    }
-
-    private void hideLoading() {
-        progFabLoading.setVisibility(View.GONE);
     }
 
     private void animateOutSearchSuggestions(final boolean hide) {
@@ -727,6 +716,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private void animateOutDestination(final boolean hide) {
         linlayDest.animate().translationX(50 + mMapView.getWidth() + linlayDest.getWidth()).setListener(new ViewAnimatorListener(hide, false, linlayDest));
     }
+
 
 
 }
