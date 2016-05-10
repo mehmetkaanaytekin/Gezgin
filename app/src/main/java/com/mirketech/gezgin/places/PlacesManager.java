@@ -32,11 +32,20 @@ public class PlacesManager {
 
     private static final String AUTOCOMPLETE_ROOT_URL = "https://maps.googleapis.com/maps/api/place/autocomplete/";
     private static final String DETAILS_ROOT_URL = "https://maps.googleapis.com/maps/api/place/details/";
+    private static final String NEARBY_ROOT_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/";
+
     private static final String QSTRING_JSON = "json?";
     private static final String PARAM_INPUT = "input";
     private static final String PARAM_PLACEID = "placeid";
     private static final String PARAM_APIKEY = "key";
     private static final String PARAM_LANGUAGE = "language";
+
+    private static final String PARAM_LOCATION = "location";
+    private static final String PARAM_RADIUS = "radius";
+    private static final String PARAM_PLACE_TYPE = "type";
+
+
+
 
     private Context appContext;
     private static PlacesManager ourInstance = null;
@@ -159,6 +168,17 @@ public class PlacesManager {
 
 
     }
+
+
+    public String PrepareNearbyPlacesURL(LatLng point){
+
+
+
+
+        return "";
+
+    }
+
 
     private LatLng getMidPoint(LatLng origin, LatLng destination) {
 
