@@ -3,7 +3,6 @@ package com.mirketech.gezgin;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -88,6 +87,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private volatile boolean isInterrupted = false;
     private LatLng origin = null;
     private LatLng destination = null;
+
 
     //Data
     private List<Marker> lstMarkers;
@@ -329,7 +329,9 @@ public class RouteFragment extends Fragment implements ICommResponse {
                     if (origin == null) {
                         origin = latestMyLocation;
                     }
+
                     DirectionManager.getInstance(getActivity()).GetDirections(origin, destination);
+
 
                 }
             }
@@ -370,30 +372,27 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
                 ArrayList<Integer> lstIndices = new ArrayList<Integer>();
 
-                if(AppSettings.ROUTE_AVOID_TOLLS){
+                if (AppSettings.ROUTE_AVOID_TOLLS) {
                     lstIndices.add(0);
                 }
-                if(AppSettings.ROUTE_AVOID_HIGHWAYS){
+                if (AppSettings.ROUTE_AVOID_HIGHWAYS) {
                     lstIndices.add(1);
                 }
-                if(AppSettings.ROUTE_AVOID_FERRIES){
+                if (AppSettings.ROUTE_AVOID_FERRIES) {
                     lstIndices.add(2);
                 }
 
 
-                if(lstIndices.size() > 0){
+                if (lstIndices.size() > 0) {
 
                     Integer selectedIndices[] = new Integer[lstIndices.size()];
 
-                    for (int i=0;i<lstIndices.size();i++){
+                    for (int i = 0; i < lstIndices.size(); i++) {
                         selectedIndices[i] = lstIndices.get(i);
                     }
 
                     dialog.setSelectedIndices(selectedIndices);
                 }
-
-
-
 
 
             }
@@ -532,6 +531,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
                 String title = Location.convert(latLng.latitude, Location.FORMAT_DEGREES) + " , " + Location.convert(latLng.longitude, Location.FORMAT_DEGREES);
                 Marker marker = googleMap.addMarker(new MarkerOptions().position(latLng).title(title));
                 lstMarkers.add(marker);
+
+                animateInClearButton(true);
             }
         });
 
@@ -587,19 +588,20 @@ public class RouteFragment extends Fragment implements ICommResponse {
             isInterrupted = true;
 
 
-            List<LatLng> lstPolies = DirectionManager.getInstance(getActivity()).ParseDirectionResponse(response);
+            List<LatLng> lstDirections = DirectionManager.getInstance(getActivity()).ParseDirectionResponse(response);
+
 
             PolylineOptions polylineOptions = new PolylineOptions();
-            polylineOptions.addAll(lstPolies);
+            polylineOptions.addAll(lstDirections);
             polylineOptions
-                    .width(7)
-                    .color(Color.GREEN);
+                    .width(AppSettings.ROUTE_WIDTH)
+                    .color(AppSettings.ROUTE_COLOR);
 
             googleMap.addPolyline(polylineOptions);
 
             LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
-            for (LatLng pos : lstPolies) {
+            for (LatLng pos : lstDirections) {
                 builder.include(pos);
             }
             LatLngBounds bounds = builder.build();
@@ -608,6 +610,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
 
             animateInClearButton(true);
+
+
+            hideMarkerInfoWindows();
+
+            PlacesManager.getInstance(getActivity()).GetPlacesNearby(lstDirections);
 
 
         } catch (Exception e) {
@@ -773,5 +780,14 @@ public class RouteFragment extends Fragment implements ICommResponse {
         linlayDest.animate().translationX(50 + mMapView.getWidth() + linlayDest.getWidth()).setListener(new ViewAnimatorListener(hide, false, linlayDest));
     }
 
+
+    private void hideMarkerInfoWindows() {
+        for (Marker mrk : lstMarkers) {
+            if (mrk.isInfoWindowShown()) {
+                mrk.hideInfoWindow();
+            }
+        }
+
+    }
 
 }

@@ -1,6 +1,7 @@
 package com.mirketech.gezgin.places;
 
 import android.content.Context;
+import android.location.Location;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -8,6 +9,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.maps.model.LatLng;
 import com.mirketech.gezgin.R;
 import com.mirketech.gezgin.comm.CommManager;
 import com.mirketech.gezgin.comm.GResponse;
@@ -72,7 +74,7 @@ public class PlacesManager {
 
     }
 
-    public void GetPlaceDetails(String place_id){
+    public void GetPlaceDetails(String place_id) {
 
         VolleyManager vManager = VolleyManager.getInstance(appContext);
         RequestQueue queue = vManager.getRequestQueue();
@@ -100,7 +102,7 @@ public class PlacesManager {
         return sbU.toString();
     }
 
-    public String PreparePlacesDetailsURL(String place_id){
+    public String PreparePlacesDetailsURL(String place_id) {
 
         StringBuilder sbU = new StringBuilder();
         sbU.append(PlacesManager.DETAILS_ROOT_URL);
@@ -111,6 +113,84 @@ public class PlacesManager {
 
 
         return sbU.toString();
+    }
+
+
+    public void GetPlacesNearby(List<LatLng> lstDirections) {
+
+        List<LatLng> lstPoints = new ArrayList<LatLng>();
+
+        LatLng origin = lstDirections.get(0);
+        LatLng destination = lstDirections.get(lstDirections.size() - 1);
+
+        float total_distance = CalculationByDistance(origin, destination);
+
+        Log.e(TAG, "total_distance(meters) : " + total_distance);
+
+
+        LatLng start_point = origin;
+        LatLng next_point = null;
+
+        float distance = 0;
+
+        for (int i = 1; i < lstDirections.size(); i++) {
+
+
+            next_point = lstDirections.get(i);
+
+            distance += CalculationByDistance(start_point, next_point);
+
+            if (distance >= AppSettings.PLACES_MAX_METERS_BETWEEN_POINTS) {
+                LatLng mid = getMidPoint(start_point, next_point);
+                lstPoints.add(mid);
+                distance = 0;
+            }
+
+            start_point = next_point;
+        }
+
+        if(lstPoints.size() > 0){
+
+            //TODO use nearby search api for each points in lstPoints
+
+
+        }
+
+
+
+    }
+
+    private LatLng getMidPoint(LatLng origin, LatLng destination) {
+
+
+        double x = 0;
+        double y = 0;
+        double z = 0;
+
+        double lat = origin.latitude * Math.PI / 100;
+        double lng = origin.longitude * Math.PI / 100;
+
+        x += Math.cos(lat) * Math.cos(lng);
+        y += Math.cos(lat) * Math.sin(lng);
+        z += Math.sin(lat);
+
+        lat = destination.latitude * Math.PI / 100;
+        lng = destination.longitude * Math.PI / 100;
+
+        x += Math.cos(lat) * Math.cos(lng);
+        y += Math.cos(lat) * Math.sin(lng);
+        z += Math.sin(lat);
+
+        x = x / 2;
+        y = y / 2;
+        z = z / 2;
+
+        double centralLongitude = Math.atan2(y, x);
+        double centralSquareRoot = Math.sqrt(x * x + y * y);
+        double centralLatitude = Math.atan2(z, centralSquareRoot);
+
+        return new LatLng(centralLatitude * 180 / Math.PI, centralLongitude * 180 / Math.PI);
+
     }
 
 
@@ -200,5 +280,18 @@ public class PlacesManager {
         };
     }
 
+    public float CalculationByDistance(LatLng StartP, LatLng EndP) {
 
+
+        Location locA = new Location("A");
+        Location locB = new Location("B");
+        locA.setLatitude(StartP.latitude);
+        locA.setLongitude(StartP.longitude);
+
+        locB.setLatitude(EndP.latitude);
+        locB.setLongitude(EndP.longitude);
+
+
+        return locA.distanceTo(locB);
+    }
 }

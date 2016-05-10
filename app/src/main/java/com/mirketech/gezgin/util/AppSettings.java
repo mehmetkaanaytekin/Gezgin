@@ -1,5 +1,7 @@
 package com.mirketech.gezgin.util;
 
+import android.graphics.Color;
+
 import com.google.android.gms.maps.model.LatLng;
 
 /**
@@ -19,6 +21,12 @@ public class AppSettings {
     public static boolean ROUTE_AVOID_HIGHWAYS                      = false;
     public static boolean ROUTE_AVOID_FERRIES                       = false;
 
+    public static float PLACES_CHECK_RADIUS_METERS                  = 1000F;
+    public static float PLACES_MAX_METERS_BETWEEN_POINTS            = 5000F;
+    public static float PLACES_ROUTE_DIVIDE_PERCENT                 = 5F;
+
+    public static int ROUTE_WIDTH                                   = 7;
+    public static int ROUTE_COLOR                                   = Color.GREEN;
 
 
 

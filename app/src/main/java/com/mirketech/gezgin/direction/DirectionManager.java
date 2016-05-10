@@ -1,6 +1,7 @@
 package com.mirketech.gezgin.direction;
 
 import android.content.Context;
+import android.location.Location;
 import android.util.Log;
 
 import com.android.volley.Request.Method;
@@ -19,6 +20,7 @@ import com.mirketech.gezgin.util.AppSettings;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 /**
@@ -147,6 +149,8 @@ public class DirectionManager {
             }
         };
     }
+
+
 
 
 }
