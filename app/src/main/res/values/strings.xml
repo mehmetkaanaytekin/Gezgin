@@ -35,4 +35,14 @@
     <string name="icon_google">&#xf1a0;</string>
 
     <string name="my_location">Konumum</string>
+
+    <string name="route_settings">Rota Ayarları</string>
+
+    <string name="route_settings_dialog_save">Rota ayarlarını kaydet</string>
+
+    <array name="arr_route_settings">
+        <item>Ücretli Yolları kullanma</item>
+        <item>Ana Yolları kullanma</item>
+        <item>Feribot kullanma</item>
+    </array>
 </resources>

@@ -1,6 +1,7 @@
 package com.mirketech.gezgin.direction;
 
 import android.content.Context;
+import android.location.Location;
 import android.util.Log;
 
 import com.android.volley.Request.Method;
@@ -19,6 +20,7 @@ import com.mirketech.gezgin.util.AppSettings;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 /**
@@ -35,6 +37,9 @@ public class DirectionManager {
     private static final String PARAM_ORIGIN = "origin";
     private static final String PARAM_DESTINATION = "destination";
     private static final String PARAM_APIKEY = "key";
+    private static final String PARAM_AVOID_TOLLS = "avoid=tolls";
+    private static final String PARAM_AVOID_HIGHWAYS = "avoid=highways";
+    private static final String PARAM_AVOID_FERRIES = "avoid=ferries";
 
 
     private Context appContext;
@@ -80,6 +85,17 @@ public class DirectionManager {
         sbU.append(DirectionManager.QSTRING_JSON);
         sbU.append(DirectionManager.PARAM_ORIGIN + "=" + origin.latitude + "," + origin.longitude);
         sbU.append("&" + DirectionManager.PARAM_DESTINATION + "=" + dest.latitude + "," + dest.longitude);
+
+        if(AppSettings.ROUTE_AVOID_TOLLS){
+            sbU.append("&" + PARAM_AVOID_TOLLS);
+        }
+        if(AppSettings.ROUTE_AVOID_HIGHWAYS){
+            sbU.append("&" + PARAM_AVOID_HIGHWAYS);
+        }
+        if(AppSettings.ROUTE_AVOID_FERRIES){
+            sbU.append("&" + PARAM_AVOID_FERRIES);
+        }
+
         sbU.append("&" + DirectionManager.PARAM_LANGUAGE + "=" + AppSettings.LANGUAGE);
         sbU.append("&" + DirectionManager.PARAM_APIKEY + "=" + appContext.getString(R.string.google_directions_apikey));
 
@@ -133,6 +149,8 @@ public class DirectionManager {
             }
         };
     }
+
+
 
 
 }

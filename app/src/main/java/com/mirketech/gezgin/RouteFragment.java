@@ -3,7 +3,6 @@ package com.mirketech.gezgin;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -22,11 +21,14 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.dmitrymalkovich.android.ProgressFloatingActionButton;
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.afollestad.materialdialogs.Theme;
+import com.bowyer.app.fabtoolbar.FabToolbar;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
@@ -53,6 +55,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
+
 
 public class RouteFragment extends Fragment implements ICommResponse {
 
@@ -62,7 +66,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     //Views
     private ListView lstSearchSuggestions;
-    private ProgressFloatingActionButton progFabLoading;
     private MapView mMapView;
     private FloatingActionButton mFabAction;
     private FloatingActionButton mFabClear;
@@ -70,8 +73,13 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private LinearLayout linlayDest;
     private FloatingActionButton mFabOrigin;
     private FloatingActionButton mFabDest;
+    private FloatingActionButton mFabNearbyPlaces;
     private TextView txtOrigin;
     private TextView txtDest;
+    private FabToolbar mFabToolbar;
+    private ImageButton btnRouteSettings;
+    private ImageButton btnCreateRoute;
+    private SmoothProgressBar sProgBar;
 
 
     //Listeners
@@ -83,6 +91,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private volatile boolean isInterrupted = false;
     private LatLng origin = null;
     private LatLng destination = null;
+    private List<LatLng> lstDirections;
+
 
     //Data
     private List<Marker> lstMarkers;
@@ -129,7 +139,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
             public boolean onQueryTextSubmit(String query) {
                 Log.d(TAG, "onQueryTextSubmit query : " + query);
                 clearMap();
-                showLoading();
                 animateInClearButton(true);
                 animateInSearchSuggestions(true);
                 PlacesManager.getInstance(getActivity()).GetPlacesAutoComplete(query.trim());
@@ -186,6 +195,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
     @Override
     public void onDetach() {
         super.onDetach();
+
+        if (googleMap != null) {
+            mMapView.onPause();
+        }
+
         mListener = null;
     }
 
@@ -209,112 +223,43 @@ public class RouteFragment extends Fragment implements ICommResponse {
                 false);
 
         lstSearchSuggestions = (ListView) v.findViewById(R.id.lstSearchSuggestions);
-        progFabLoading = (ProgressFloatingActionButton) v.findViewById(R.id.progFabLoading);
-
+        mFabToolbar = (FabToolbar) v.findViewById(R.id.fabtoolbar);
+        btnRouteSettings = (ImageButton) v.findViewById(R.id.btnTbarRouteSettings);
+        btnCreateRoute = (ImageButton) v.findViewById(R.id.btnTbarCreateRoute);
         mFabAction = (FloatingActionButton) v.findViewById(R.id.fabAction);
-        mFabAction.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "FabAction clicked.");
-
-                if (latestMyLocation != null && destination != null) {
-
-                    if (origin == null) {
-                        origin = latestMyLocation;
-                    }
-                    DirectionManager.getInstance(getActivity()).GetDirections(origin, destination);
-
-                }
-            }
-        });
-
-/*
-        private LinearLayout linlayOrigin;
-        private LinearLayout linlayDest;
-        private FloatingActionButton mFabOrigin;
-        private FloatingActionButton mFabDest;
-        private TextView txtOrigin;
-        private TextView txtDest;*/
-
+        mFabClear = (FloatingActionButton) v.findViewById(R.id.fabClear);
+        mFabNearbyPlaces = (FloatingActionButton) v.findViewById(R.id.fabNearbyPlaces);
         linlayOrigin = (LinearLayout) v.findViewById(R.id.linlayOrigin);
         linlayDest = (LinearLayout) v.findViewById(R.id.linlayDest);
         mFabOrigin = (FloatingActionButton) v.findViewById(R.id.fabOrigin);
         mFabDest = (FloatingActionButton) v.findViewById(R.id.fabDest);
         txtOrigin = (TextView) v.findViewById(R.id.txtOrigin);
         txtDest = (TextView) v.findViewById(R.id.txtDest);
+        sProgBar = (SmoothProgressBar) v.findViewById(R.id.sProgBar);
 
         txtOrigin.setText(getString(R.string.my_location));
-
         txtDest.setText("");
 
-        mFabOrigin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-                for (Marker mrk: lstMarkers) {
-                    if(mrk.isInfoWindowShown()){
-                        txtOrigin.setText(mrk.getTitle());
-                        origin = mrk.getPosition();
-                    }
-                }
-            }
-        });
+        mFabNearbyPlaces.setOnClickListener(fabNearbyPlacesClickListener);
 
-        mFabDest.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        mFabAction.setOnClickListener(fabActionClickListener);
 
-                for (Marker mrk: lstMarkers) {
-                    if(mrk.isInfoWindowShown()){
-                        txtDest.setText(mrk.getTitle());
-                        destination = mrk.getPosition();
-                        mFabDest.setBackgroundColor(android.R.color.holo_green_light);
-                        break;
-                    }
-                }
+        mFabOrigin.setOnClickListener(fabOriginClickListener);
 
+        mFabDest.setOnClickListener(fabDestClickListener);
 
-            }
-        });
-        lstSearchSuggestions.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mFabClear.setOnClickListener(fabClearClickListener);
 
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        btnCreateRoute.setOnClickListener(btnCreateRouteClickListener);
 
-                SuggestModel data = lstSuggestionsData.get(position);
+        btnRouteSettings.setOnClickListener(btnRouteSettingsClickListener);
 
-                LatLng loc = new LatLng(data.getLatitude(), data.getLongitude());
-                MapsHelper.moveCamera(googleMap, loc,AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
+        lstSearchSuggestions.setOnItemClickListener(SearchSuggestionsOnItemClickListener);
 
-                for (Marker mrk : lstMarkers) {
-                    if (mrk.getPosition().latitude == data.getLatitude() && mrk.getPosition().longitude == data.getLongitude()) {
-                        animateInActionButton(true);
-                        mrk.showInfoWindow();
-                        break;
-                    }
-                }
+        lstSearchSuggestions.setOnTouchListener(SearchSuggestionsOnTouchListener);
 
-                animateOutSearchSuggestions(false);
-
-            }
-        });
-        lstSearchSuggestions.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-
-                animateInSearchSuggestions(false);
-
-                return false;
-            }
-        });
-
-        mFabClear = (FloatingActionButton) v.findViewById(R.id.fabClear);
-        mFabClear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clearMap();
-            }
-        });
+        mFabToolbar.setFab(mFabAction);
 
         initMap(v, savedInstanceState);
 
@@ -322,21 +267,188 @@ public class RouteFragment extends Fragment implements ICommResponse {
     }
 
 
+    private View.OnTouchListener SearchSuggestionsOnTouchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+
+            animateInSearchSuggestions(false);
+            return false;
+        }
+    };
+
+    private AdapterView.OnItemClickListener SearchSuggestionsOnItemClickListener = new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            SuggestModel data = lstSuggestionsData.get(position);
+
+            LatLng loc = new LatLng(data.getLatitude(), data.getLongitude());
+            MapsHelper.moveCamera(googleMap, loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
+
+            for (Marker mrk : lstMarkers) {
+                if (mrk.getPosition().latitude == data.getLatitude() && mrk.getPosition().longitude == data.getLongitude()) {
+                    animateInDestination(true);
+                    mrk.showInfoWindow();
+                    break;
+                }
+            }
+
+            animateOutSearchSuggestions(false);
+        }
+    };
+
     private GoogleMap.OnMarkerClickListener gMapMarkerClickListener = new GoogleMap.OnMarkerClickListener() {
         @Override
         public boolean onMarkerClick(Marker marker) {
 
             isInterrupted = true;
 
+            animateOutNearbyPlacesButton(true);
             animateOutSearchSuggestions(false);
-            animateInActionButton(true);
-
+            animateInClearButton(true);
             animateInDestination(true);
 
             return false;
         }
     };
 
+    private View.OnClickListener btnRouteSettingsClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            MaterialDialog dialog = new MaterialDialog.Builder(getActivity())
+                    .title(getString(R.string.route_settings))
+                    .items(R.array.arr_route_settings)
+                    .itemsCallbackMultiChoice(null, new MaterialDialog.ListCallbackMultiChoice() {
+                        @Override
+                        public boolean onSelection(MaterialDialog dialog, Integer[] which, CharSequence[] text) {
+
+                            for (int i = 0; i < which.length; i++) {
+                                switch (which[i]) {
+                                    case 0:
+                                        AppSettings.ROUTE_AVOID_TOLLS = true;
+                                        break;
+                                    case 1:
+                                        AppSettings.ROUTE_AVOID_HIGHWAYS = true;
+                                        break;
+                                    case 2:
+                                        AppSettings.ROUTE_AVOID_FERRIES = true;
+                                        break;
+
+                                }
+                            }
+
+                            return true;
+                        }
+                    })
+                    .positiveText(getString(R.string.route_settings_dialog_save))
+                    .theme(Theme.DARK)
+                    .show();
+
+            ArrayList<Integer> lstIndices = new ArrayList<Integer>();
+
+            if (AppSettings.ROUTE_AVOID_TOLLS) {
+                lstIndices.add(0);
+            }
+            if (AppSettings.ROUTE_AVOID_HIGHWAYS) {
+                lstIndices.add(1);
+            }
+            if (AppSettings.ROUTE_AVOID_FERRIES) {
+                lstIndices.add(2);
+            }
+
+
+            if (lstIndices.size() > 0) {
+
+                Integer selectedIndices[] = new Integer[lstIndices.size()];
+
+                for (int i = 0; i < lstIndices.size(); i++) {
+                    selectedIndices[i] = lstIndices.get(i);
+                }
+
+                dialog.setSelectedIndices(selectedIndices);
+            }
+        }
+    };
+
+    private View.OnClickListener fabNearbyPlacesClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+
+
+            // TODO implement nearby places !
+
+            PlacesManager.getInstance(getActivity()).GetPlacesNearby(lstDirections,"");
+
+
+        }
+    };
+
+
+    private View.OnClickListener fabClearClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            clearMap();
+        }
+    };
+
+    private View.OnClickListener btnCreateRouteClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            mFabToolbar.slideOutFab();
+            if (latestMyLocation != null && destination != null) {
+                if (origin == null) {
+                    origin = latestMyLocation;
+                }
+                lstDirections = null;
+
+                sProgBar.setVisibility(View.VISIBLE);
+
+                DirectionManager.getInstance(getActivity()).GetDirections(origin, destination);
+
+                animateOutActionButton(true);
+            }
+        }
+    };
+
+    private View.OnClickListener fabActionClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Log.d(TAG, "FabAction clicked.");
+
+            mFabToolbar.expandFab();
+            mFabToolbar.bringToFront();
+        }
+    };
+    private View.OnClickListener fabOriginClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+
+            for (Marker mrk : lstMarkers) {
+                if (mrk.isInfoWindowShown()) {
+                    txtOrigin.setText(mrk.getTitle());
+                    origin = mrk.getPosition();
+                    if (destination != null) {
+                        animateInActionButton(true);
+                    }
+                }
+            }
+        }
+    };
+
+    private View.OnClickListener fabDestClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+
+            for (Marker mrk : lstMarkers) {
+                if (mrk.isInfoWindowShown()) {
+                    txtDest.setText(mrk.getTitle());
+                    destination = mrk.getPosition();
+                    animateInActionButton(true);
+                    break;
+                }
+            }
+        }
+    };
 
     private GoogleMap.OnMyLocationChangeListener myLocationChangeListener = new GoogleMap.OnMyLocationChangeListener() {
 
@@ -350,42 +462,10 @@ public class RouteFragment extends Fragment implements ICommResponse {
             animateInOrigin(true);
 
             if (googleMap != null && !isInterrupted) {
-                MapsHelper.moveCamera(googleMap, loc,AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
+                MapsHelper.moveCamera(googleMap, loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
             }
         }
     };
-
-    private void clearMap() {
-        if (googleMap != null) {
-            lstSuggestionsData.clear();
-            googleMap.clear();
-            lstMarkers.clear();
-            if (searchSuggestAdapter != null) {
-                searchSuggestAdapter.notifyDataSetChanged();
-            }
-            animateOutActionButton(true);
-            animateOutSearchSuggestions(true);
-            animateOutClearButton(true);
-            animateOutDestination(true);
-            origin = null;
-            txtOrigin.setText(getString(R.string.my_location));
-        }
-    }
-
-    private void EnableMyLocation() {
-
-        Log.d(TAG, "EnableMyLocation");
-
-        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_REQUEST_CODE);
-
-            return;
-        }
-
-        googleMap.setMyLocationEnabled(true);
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -402,6 +482,49 @@ public class RouteFragment extends Fragment implements ICommResponse {
         }
 
 
+    }
+
+
+
+    private void clearMap() {
+        if (googleMap != null) {
+            lstSuggestionsData.clear();
+            googleMap.clear();
+            lstMarkers.clear();
+            if (searchSuggestAdapter != null) {
+                searchSuggestAdapter.notifyDataSetChanged();
+            }
+
+            animateOutSearchSuggestions(true);
+            animateOutClearButton(true);
+            animateOutDestination(true);
+            origin = null;
+            destination = null;
+            txtDest.setText("");
+            txtOrigin.setText(getString(R.string.my_location));
+
+            if (mFabToolbar.isFabExpanded()) {
+                mFabToolbar.slideOutFab();
+            }
+
+            animateOutNearbyPlacesButton(true);
+            animateOutActionButton(true);
+        }
+    }
+
+    private void EnableMyLocation() {
+
+        Log.d(TAG, "EnableMyLocation");
+
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_REQUEST_CODE);
+
+            return;
+        }
+
+        googleMap.setMyLocationEnabled(true);
     }
 
     private void initMap(View v, Bundle savedInstanceState) {
@@ -421,11 +544,20 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
         googleMap = mMapView.getMap();
 
-        //googleMap.getUiSettings().setZoomControlsEnabled(true);
         googleMap.getUiSettings().setMapToolbarEnabled(false);
+        googleMap.getUiSettings().setCompassEnabled(false);
+
 
         googleMap.setOnMyLocationChangeListener(myLocationChangeListener);
         googleMap.setOnMarkerClickListener(gMapMarkerClickListener);
+        googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                if (mFabToolbar.isFabExpanded()) {
+                    mFabToolbar.slideOutFab();
+                }
+            }
+        });
         googleMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng latLng) {
@@ -433,6 +565,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
                 String title = Location.convert(latLng.latitude, Location.FORMAT_DEGREES) + " , " + Location.convert(latLng.longitude, Location.FORMAT_DEGREES);
                 Marker marker = googleMap.addMarker(new MarkerOptions().position(latLng).title(title));
                 lstMarkers.add(marker);
+
+                animateInClearButton(true);
             }
         });
 
@@ -441,7 +575,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
         EnableMyLocation();
 
 
-        MapsHelper.moveCamera(googleMap, AppSettings.MAP_DEFAULT_LOCATION,AppSettings.CAMERA_DEFAULT_ZOOM_LEVEL);
+        MapsHelper.moveCamera(googleMap, AppSettings.MAP_DEFAULT_LOCATION, AppSettings.CAMERA_DEFAULT_ZOOM_LEVEL);
 
 
         googleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
@@ -455,6 +589,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
         });
 
     }
+
 
     @Override
     public void onResponse(GResponse response) {
@@ -479,6 +614,20 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
             parseDirectionResponse(response);
         }
+        if(response.RequestType.equals(GResponse.RequestTypes.Places_NearbySearch)){
+
+            parsePlacesNearbySearchResponse(response);
+
+        }
+
+
+    }
+
+    private void parsePlacesNearbySearchResponse(GResponse response) {
+
+
+
+
 
     }
 
@@ -487,19 +636,20 @@ public class RouteFragment extends Fragment implements ICommResponse {
             isInterrupted = true;
 
 
-            List<LatLng> lstPolies = DirectionManager.getInstance(getActivity()).ParseDirectionResponse(response);
+            lstDirections = DirectionManager.getInstance(getActivity()).ParseDirectionResponse(response);
+
 
             PolylineOptions polylineOptions = new PolylineOptions();
-            polylineOptions.addAll(lstPolies);
+            polylineOptions.addAll(lstDirections);
             polylineOptions
-                    .width(7)
-                    .color(Color.GREEN);
+                    .width(AppSettings.ROUTE_WIDTH)
+                    .color(AppSettings.ROUTE_COLOR);
 
             googleMap.addPolyline(polylineOptions);
 
             LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
-            for (LatLng pos : lstPolies) {
+            for (LatLng pos : lstDirections) {
                 builder.include(pos);
             }
             LatLngBounds bounds = builder.build();
@@ -508,6 +658,14 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
 
             animateInClearButton(true);
+
+            hideMarkerInfoWindows();
+
+
+
+            animateInNearbyPlacesButton(true);
+
+            sProgBar.setVisibility(View.GONE);
 
 
         } catch (Exception e) {
@@ -585,7 +743,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
         List<HashMap<String, String>> placesList = PlacesManager.getInstance(getActivity()).parsePlacesAutoComplete(response);
 
-        hideLoading();
 
         for (HashMap<String, String> item : placesList) {
 
@@ -595,14 +752,16 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     }
 
-    private void showLoading() {
-        progFabLoading.setVisibility(View.VISIBLE);
-        progFabLoading.bringToFront();
+
+    private void hideMarkerInfoWindows() {
+        for (Marker mrk : lstMarkers) {
+            if (mrk.isInfoWindowShown()) {
+                mrk.hideInfoWindow();
+            }
+        }
+
     }
 
-    private void hideLoading() {
-        progFabLoading.setVisibility(View.GONE);
-    }
 
     private void animateOutSearchSuggestions(final boolean hide) {
         lstSearchSuggestions.animate().translationY(50 - lstSearchSuggestions.getHeight()).setListener(new ViewAnimatorListener(hide, false, lstSearchSuggestions));
@@ -613,16 +772,16 @@ public class RouteFragment extends Fragment implements ICommResponse {
     }
 
     private void animateOutClearButton(final boolean hide) {
-        mFabClear.animate().translationY(50 + mFabClear.getHeight()).setListener(new ViewAnimatorListener(hide, false, mFabClear));
+        mFabClear.animate().translationY(0 - mFabClear.getHeight()).setListener(new ViewAnimatorListener(hide, false, mFabClear));
     }
 
     private void animateInClearButton(final boolean show) {
         if (!show) {
-            mFabClear.setY(mMapView.getHeight() + 50 + mFabClear.getHeight());
+            mFabClear.setY(0 - mFabClear.getHeight());
             mFabClear.animate().translationY(0).setListener(new ViewAnimatorListener(false, show, mFabClear));
         } else {
             if (mFabClear.getVisibility() == View.GONE) {
-                mFabClear.setY(mMapView.getHeight() + 50 + mFabClear.getHeight());
+                mFabClear.setY(0 - mFabClear.getHeight());
                 mFabClear.animate().translationY(0).setListener(new ViewAnimatorListener(false, show, mFabClear));
             }
         }
@@ -648,7 +807,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     }
 
-
     private void animateInOrigin(final boolean show) {
         if (!show) {
 
@@ -666,7 +824,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
         linlayOrigin.animate().translationX(50 - linlayOrigin.getWidth()).setListener(new ViewAnimatorListener(hide, false, linlayOrigin));
     }
 
-
     private void animateInDestination(final boolean show) {
         if (!show) {
 
@@ -683,5 +840,25 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private void animateOutDestination(final boolean hide) {
         linlayDest.animate().translationX(50 + mMapView.getWidth() + linlayDest.getWidth()).setListener(new ViewAnimatorListener(hide, false, linlayDest));
     }
+
+    private void animateOutNearbyPlacesButton(final boolean hide) {
+        mFabNearbyPlaces.animate().translationY(50 + mFabNearbyPlaces.getHeight()).setListener(new ViewAnimatorListener(hide, false, mFabNearbyPlaces));
+    }
+
+    private void animateInNearbyPlacesButton(final boolean show) {
+
+        if (!show) {
+
+            mFabNearbyPlaces.setY(mMapView.getHeight() + 50 + mFabNearbyPlaces.getHeight());
+            mFabNearbyPlaces.animate().translationY(0).setListener(new ViewAnimatorListener(false, show, mFabNearbyPlaces));
+        } else {
+            if (mFabNearbyPlaces.getVisibility() == View.GONE) {
+                mFabNearbyPlaces.setY(mMapView.getHeight() + 50 + mFabNearbyPlaces.getHeight());
+                mFabNearbyPlaces.animate().translationY(0).setListener(new ViewAnimatorListener(false, show, mFabNearbyPlaces));
+            }
+        }
+
+    }
+
 
 }

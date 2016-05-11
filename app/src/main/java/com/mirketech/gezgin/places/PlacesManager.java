@@ -1,6 +1,7 @@
 package com.mirketech.gezgin.places;
 
 import android.content.Context;
+import android.location.Location;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -8,6 +9,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.maps.model.LatLng;
 import com.mirketech.gezgin.R;
 import com.mirketech.gezgin.comm.CommManager;
 import com.mirketech.gezgin.comm.GResponse;
@@ -30,11 +32,18 @@ public class PlacesManager {
 
     private static final String AUTOCOMPLETE_ROOT_URL = "https://maps.googleapis.com/maps/api/place/autocomplete/";
     private static final String DETAILS_ROOT_URL = "https://maps.googleapis.com/maps/api/place/details/";
+    private static final String NEARBY_ROOT_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/";
+
     private static final String QSTRING_JSON = "json?";
     private static final String PARAM_INPUT = "input";
     private static final String PARAM_PLACEID = "placeid";
     private static final String PARAM_APIKEY = "key";
     private static final String PARAM_LANGUAGE = "language";
+
+    private static final String PARAM_LOCATION = "location";
+    private static final String PARAM_RADIUS = "radius";
+    private static final String PARAM_PLACE_TYPE = "type";
+
 
     private Context appContext;
     private static PlacesManager ourInstance = null;
@@ -72,7 +81,7 @@ public class PlacesManager {
 
     }
 
-    public void GetPlaceDetails(String place_id){
+    public void GetPlaceDetails(String place_id) {
 
         VolleyManager vManager = VolleyManager.getInstance(appContext);
         RequestQueue queue = vManager.getRequestQueue();
@@ -100,7 +109,7 @@ public class PlacesManager {
         return sbU.toString();
     }
 
-    public String PreparePlacesDetailsURL(String place_id){
+    public String PreparePlacesDetailsURL(String place_id) {
 
         StringBuilder sbU = new StringBuilder();
         sbU.append(PlacesManager.DETAILS_ROOT_URL);
@@ -113,6 +122,140 @@ public class PlacesManager {
         return sbU.toString();
     }
 
+
+    public void GetPlacesNearby(List<LatLng> lstDirections, String place_type) {
+
+        List<LatLng> lstPoints = new ArrayList<LatLng>();
+
+        LatLng origin = lstDirections.get(0);
+        LatLng destination = lstDirections.get(lstDirections.size() - 1);
+
+        float total_distance = CalculationByDistance(origin, destination);
+
+        Log.e(TAG, "total_distance(meters) : " + total_distance);
+
+
+        LatLng start_point = origin;
+        LatLng next_point = null;
+
+        float distance = 0;
+
+        for (int i = 1; i < lstDirections.size(); i++) {
+
+
+            next_point = lstDirections.get(i);
+
+            distance += CalculationByDistance(start_point, next_point);
+
+            if (distance >= AppSettings.PLACES_MAX_METERS_BETWEEN_POINTS) {
+                LatLng mid = getMidPoint(start_point, next_point);
+                lstPoints.add(mid);
+                distance = 0;
+            }
+
+            start_point = next_point;
+        }
+
+        if (lstPoints.size() > 0) {
+
+            for (int i = 0; i < lstPoints.size(); i++) {
+
+
+                VolleyManager vManager = VolleyManager.getInstance(appContext);
+                RequestQueue queue = vManager.getRequestQueue();
+                GResponse.RequestTypes reqType = GResponse.RequestTypes.Places_NearbySearch;
+
+                JsonObjectRequest myReq = new JsonObjectRequest(Request.Method.POST,
+                        PrepareNearbyPlacesURL(lstPoints.get(i), place_type),
+                        null,
+                        createReqSuccessListener(reqType),
+                        createReqErrorListener(reqType));
+
+                queue.add(myReq);
+
+                ;
+            }
+
+        }
+
+
+    }
+
+
+    public String PrepareNearbyPlacesURL(LatLng point, String place_type) {
+
+
+        StringBuilder sbU = new StringBuilder();
+        sbU.append(PlacesManager.NEARBY_ROOT_URL);
+        sbU.append(PlacesManager.QSTRING_JSON);
+        sbU.append(PlacesManager.PARAM_LOCATION + "=" + point.latitude + "," + point.longitude);
+        sbU.append("&" + PlacesManager.PARAM_RADIUS + "=" + AppSettings.PLACES_CHECK_RADIUS_METERS);
+        if (!place_type.isEmpty()) {
+            sbU.append("&" + PlacesManager.PARAM_PLACE_TYPE + "=" + place_type);
+        }
+        sbU.append("&" + PlacesManager.PARAM_LANGUAGE + "=" + AppSettings.LANGUAGE);
+        sbU.append("&" + PlacesManager.PARAM_APIKEY + "=" + appContext.getString(R.string.google_directions_apikey));
+
+        Log.e(TAG, "NearbyPlaces" + sbU.toString());
+        return sbU.toString();
+
+    }
+
+
+    private LatLng getMidPoint(LatLng origin, LatLng destination) {
+
+
+        double lat = (origin.latitude + destination.latitude) / 2;
+        double lng = (destination.longitude + destination.longitude) / 2;
+        return new LatLng(lat, lng);
+
+        //TODO not accurate - fix it !
+
+//        double x = 0;
+//        double y = 0;
+//        double z = 0;
+//
+//
+//        double lat = origin.latitude * Math.PI / 100;
+//        double lng = origin.longitude * Math.PI / 100;
+//
+//        x += Math.cos(lat) * Math.cos(lng);
+//        y += Math.cos(lat) * Math.sin(lng);
+//        z += Math.sin(lat);
+//
+//        lat = destination.latitude * Math.PI / 100;
+//        lng = destination.longitude * Math.PI / 100;
+//
+//        x += Math.cos(lat) * Math.cos(lng);
+//        y += Math.cos(lat) * Math.sin(lng);
+//        z += Math.sin(lat);
+//
+//        x = x / 2;
+//        y = y / 2;
+//        z = z / 2;
+//
+//        double centralLongitude = Math.atan2(y, x);
+//        double centralSquareRoot = Math.sqrt(x * x + y * y);
+//        double centralLatitude = Math.atan2(z, centralSquareRoot);
+//
+//        return new LatLng(centralLatitude * 180 / Math.PI, centralLongitude * 180 / Math.PI);
+
+    }
+
+    public float CalculationByDistance(LatLng StartP, LatLng EndP) {
+
+
+        Location locA = new Location("A");
+        Location locB = new Location("B");
+        locA.setLatitude(StartP.latitude);
+        locA.setLongitude(StartP.longitude);
+
+        locB.setLatitude(EndP.latitude);
+        locB.setLongitude(EndP.longitude);
+
+
+        return locA.distanceTo(locB);
+    }
 
     public List<HashMap<String, String>> parsePlacesAutoComplete(GResponse response) {
 
