@@ -45,8 +45,6 @@ public class PlacesManager {
     private static final String PARAM_PLACE_TYPE = "type";
 
 
-
-
     private Context appContext;
     private static PlacesManager ourInstance = null;
 
@@ -125,7 +123,7 @@ public class PlacesManager {
     }
 
 
-    public void GetPlacesNearby(List<LatLng> lstDirections) {
+    public void GetPlacesNearby(List<LatLng> lstDirections, String place_type) {
 
         List<LatLng> lstPoints = new ArrayList<LatLng>();
 
@@ -158,24 +156,48 @@ public class PlacesManager {
             start_point = next_point;
         }
 
-        if(lstPoints.size() > 0){
+        if (lstPoints.size() > 0) {
 
-            //TODO use nearby search api for each points in lstPoints
+            for (int i = 0; i < lstPoints.size(); i++) {
 
+
+                VolleyManager vManager = VolleyManager.getInstance(appContext);
+                RequestQueue queue = vManager.getRequestQueue();
+                GResponse.RequestTypes reqType = GResponse.RequestTypes.Places_NearbySearch;
+
+                JsonObjectRequest myReq = new JsonObjectRequest(Request.Method.POST,
+                        PrepareNearbyPlacesURL(lstPoints.get(i), place_type),
+                        null,
+                        createReqSuccessListener(reqType),
+                        createReqErrorListener(reqType));
+
+                queue.add(myReq);
+
+                ;
+            }
 
         }
-
 
 
     }
 
 
-    public String PrepareNearbyPlacesURL(LatLng point){
+    public String PrepareNearbyPlacesURL(LatLng point, String place_type) {
 
 
+        StringBuilder sbU = new StringBuilder();
+        sbU.append(PlacesManager.NEARBY_ROOT_URL);
+        sbU.append(PlacesManager.QSTRING_JSON);
+        sbU.append(PlacesManager.PARAM_LOCATION + "=" + point.latitude + "," + point.longitude);
+        sbU.append("&" + PlacesManager.PARAM_RADIUS + "=" + AppSettings.PLACES_CHECK_RADIUS_METERS);
+        if (!place_type.isEmpty()) {
+            sbU.append("&" + PlacesManager.PARAM_PLACE_TYPE + "=" + place_type);
+        }
+        sbU.append("&" + PlacesManager.PARAM_LANGUAGE + "=" + AppSettings.LANGUAGE);
+        sbU.append("&" + PlacesManager.PARAM_APIKEY + "=" + appContext.getString(R.string.google_directions_apikey));
 
-
-        return "";
+        Log.e(TAG, "NearbyPlaces" + sbU.toString());
+        return sbU.toString();
 
     }
 
@@ -183,36 +205,57 @@ public class PlacesManager {
     private LatLng getMidPoint(LatLng origin, LatLng destination) {
 
 
-        double x = 0;
-        double y = 0;
-        double z = 0;
+        double lat = (origin.latitude + destination.latitude) / 2;
+        double lng = (destination.longitude + destination.longitude) / 2;
+        return new LatLng(lat, lng);
 
-        double lat = origin.latitude * Math.PI / 100;
-        double lng = origin.longitude * Math.PI / 100;
+        //TODO not accurate - fix it !
 
-        x += Math.cos(lat) * Math.cos(lng);
-        y += Math.cos(lat) * Math.sin(lng);
-        z += Math.sin(lat);
-
-        lat = destination.latitude * Math.PI / 100;
-        lng = destination.longitude * Math.PI / 100;
-
-        x += Math.cos(lat) * Math.cos(lng);
-        y += Math.cos(lat) * Math.sin(lng);
-        z += Math.sin(lat);
-
-        x = x / 2;
-        y = y / 2;
-        z = z / 2;
-
-        double centralLongitude = Math.atan2(y, x);
-        double centralSquareRoot = Math.sqrt(x * x + y * y);
-        double centralLatitude = Math.atan2(z, centralSquareRoot);
-
-        return new LatLng(centralLatitude * 180 / Math.PI, centralLongitude * 180 / Math.PI);
+//        double x = 0;
+//        double y = 0;
+//        double z = 0;
+//
+//
+//        double lat = origin.latitude * Math.PI / 100;
+//        double lng = origin.longitude * Math.PI / 100;
+//
+//        x += Math.cos(lat) * Math.cos(lng);
+//        y += Math.cos(lat) * Math.sin(lng);
+//        z += Math.sin(lat);
+//
+//        lat = destination.latitude * Math.PI / 100;
+//        lng = destination.longitude * Math.PI / 100;
+//
+//        x += Math.cos(lat) * Math.cos(lng);
+//        y += Math.cos(lat) * Math.sin(lng);
+//        z += Math.sin(lat);
+//
+//        x = x / 2;
+//        y = y / 2;
+//        z = z / 2;
+//
+//        double centralLongitude = Math.atan2(y, x);
+//        double centralSquareRoot = Math.sqrt(x * x + y * y);
+//        double centralLatitude = Math.atan2(z, centralSquareRoot);
+//
+//        return new LatLng(centralLatitude * 180 / Math.PI, centralLongitude * 180 / Math.PI);
 
     }
 
+    public float CalculationByDistance(LatLng StartP, LatLng EndP) {
+
+
+        Location locA = new Location("A");
+        Location locB = new Location("B");
+        locA.setLatitude(StartP.latitude);
+        locA.setLongitude(StartP.longitude);
+
+        locB.setLatitude(EndP.latitude);
+        locB.setLongitude(EndP.longitude);
+
+
+        return locA.distanceTo(locB);
+    }
 
     public List<HashMap<String, String>> parsePlacesAutoComplete(GResponse response) {
 
@@ -300,18 +343,5 @@ public class PlacesManager {
         };
     }
 
-    public float CalculationByDistance(LatLng StartP, LatLng EndP) {
 
-
-        Location locA = new Location("A");
-        Location locB = new Location("B");
-        locA.setLatitude(StartP.latitude);
-        locA.setLongitude(StartP.longitude);
-
-        locB.setLatitude(EndP.latitude);
-        locB.setLongitude(EndP.longitude);
-
-
-        return locA.distanceTo(locB);
-    }
 }
