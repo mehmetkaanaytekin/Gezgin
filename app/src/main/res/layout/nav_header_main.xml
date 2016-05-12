@@ -16,19 +16,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
-        android:src="@android:drawable/sym_def_app_icon" />
+        android:src="@drawable/gezgin_icon" />
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="@dimen/nav_header_vertical_spacing"
-        android:text="Android Studio"
+        android:layout_height="20dp"
+        android:text="Gezgin powered by MirkeTech"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
     <TextView
         android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="android.studio@android.com" />
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:text="gezgin@mirketech.com"
+        android:paddingBottom="4dp"/>
 
 </LinearLayout>

@@ -28,12 +28,15 @@
     <string name="member">Üye Girişi</string>
     <string name="notmember">Üye olmadan devam et</string>
     <string name="greeting">Nasıl devam etmek istersiniz?</string>
-    <string name="facebooklogin">Facebook ile bağlan</string>
-    <string name="googlelogin">Google ile bağlan</string>
-    <string name="rememberuserinfo">Kullanıcı bilgilerimi hatırla</string>
-    <string name="icon_facebook">&#xf230;</string>
-    <string name="icon_google">&#xf1a0;</string>
-
+    <string name="facebooklogin">\u0020ile bağlan</string>
+    <string name="googlelogin">\u0020ile bağlan</string>
+    <string name="facebookregister">\u0020ile üye ol</string>
+    <string name="googleregister">\u0020ile üye ol</string>
+    <string name="icon_facebook" translatable="false">&#xf230;</string>
+    <string name="icon_google" translatable="false">&#xf0d5;</string>
+    <string name="hint_e_posta">E-Posta</string>
+    <string name="hint_sifre">Şifre</string>
+    <string name="pass_reminder_text">Şifrenizi unuttusanız buraya dokunun.</string>
     <string name="my_location">Konumum</string>
 
     <string name="route_settings">Rota Ayarları</string>
