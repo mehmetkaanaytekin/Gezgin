@@ -49,6 +49,7 @@ import com.mirketech.gezgin.places.PlacesManager;
 import com.mirketech.gezgin.util.AppSettings;
 import com.mirketech.gezgin.util.MapsHelper;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -377,7 +378,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
             // TODO implement nearby places !
 
-            PlacesManager.getInstance(getActivity()).GetPlacesNearby(lstDirections,"");
+            PlacesManager.getInstance(getActivity()).GetPlacesNearby(lstDirections, "");
 
 
         }
@@ -483,7 +484,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
 
     }
-
 
 
     private void clearMap() {
@@ -614,7 +614,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
             parseDirectionResponse(response);
         }
-        if(response.RequestType.equals(GResponse.RequestTypes.Places_NearbySearch)){
+        if (response.RequestType.equals(GResponse.RequestTypes.Places_NearbySearch)) {
 
             parsePlacesNearbySearchResponse(response);
 
@@ -624,9 +624,44 @@ public class RouteFragment extends Fragment implements ICommResponse {
     }
 
     private void parsePlacesNearbySearchResponse(GResponse response) {
+        try {
+            JSONObject data = (JSONObject) response.Data;
+
+            JSONArray resultsArr = data.getJSONArray("results");
 
 
+            for (int i = 0; i < resultsArr.length(); i++) {
 
+                JSONObject place = resultsArr.getJSONObject(i);
+
+                JSONObject place_loc = place.getJSONObject("geometry").getJSONObject("location");
+
+                double lat = place_loc.getDouble("lat");
+                double lng = place_loc.getDouble("lng");
+
+                LatLng pos = new LatLng(lat, lng);
+
+                String place_name = place.getString("name");
+
+                MarkerOptions mOpt = new MarkerOptions();
+                mOpt.position(pos);
+
+
+                Marker marker = googleMap.addMarker(new MarkerOptions()
+                        .position(pos)
+                        .alpha(0.5F)
+                        .title(place_name));
+
+
+                lstMarkers.add(marker);
+
+
+            }
+
+
+        } catch (Exception e) {
+
+        }
 
 
     }
@@ -660,7 +695,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
             animateInClearButton(true);
 
             hideMarkerInfoWindows();
-
 
 
             animateInNearbyPlacesButton(true);
