@@ -97,6 +97,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     //Data
     private List<Marker> lstMarkers;
+    private List<Marker> lstPlaceMarkers;
     private ArrayList<SuggestModel> lstSuggestionsData = new ArrayList<>();
 
 
@@ -208,6 +209,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
     public void onStart() {
         super.onStart();
         lstMarkers = new ArrayList<>();
+        lstPlaceMarkers = new ArrayList<>();
         CommManager.getInstance().SetResponseListener(this);
     }
 
@@ -375,10 +377,27 @@ public class RouteFragment extends Fragment implements ICommResponse {
         @Override
         public void onClick(View v) {
 
+            clearPlaces();
+
+
+            MaterialDialog dialog = new MaterialDialog.Builder(getActivity())
+                    .title(getString(R.string.select_place_type_title))
+                    .items(R.array.arr_place_type_text)
+                    .autoDismiss(true)
+                    .itemsCallback(new MaterialDialog.ListCallback() {
+                        @Override
+                        public void onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
+
+                            String selected_type = getResources().getStringArray(R.array.arr_place_type_values)[which];
+                            PlacesManager.getInstance(getActivity()).GetPlacesNearby(lstDirections, selected_type);
+                        }
+                    })
+                    .theme(Theme.DARK)
+                    .show();
 
             // TODO implement nearby places !
 
-            PlacesManager.getInstance(getActivity()).GetPlacesNearby(lstDirections, "");
+            //PlacesManager.getInstance(getActivity()).GetPlacesNearby(lstDirections, "");
 
 
         }
@@ -488,6 +507,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     private void clearMap() {
         if (googleMap != null) {
+
+            clearPlaces();
             lstSuggestionsData.clear();
             googleMap.clear();
             lstMarkers.clear();
@@ -507,8 +528,21 @@ public class RouteFragment extends Fragment implements ICommResponse {
                 mFabToolbar.slideOutFab();
             }
 
+
+
             animateOutNearbyPlacesButton(true);
             animateOutActionButton(true);
+        }
+    }
+
+    private void clearPlaces() {
+        if (googleMap != null) {
+
+            for (Marker mrk : lstPlaceMarkers) {
+                mrk.remove();
+            }
+            lstPlaceMarkers.clear();
+
         }
     }
 
@@ -653,14 +687,14 @@ public class RouteFragment extends Fragment implements ICommResponse {
                         .title(place_name));
 
 
-                lstMarkers.add(marker);
+                lstPlaceMarkers.add(marker);
 
 
             }
 
 
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
 
 
