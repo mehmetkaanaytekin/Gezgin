@@ -148,8 +148,8 @@ public class PlacesManager {
             distance += CalculationByDistance(start_point, next_point);
 
             if (distance >= AppSettings.PLACES_MAX_METERS_BETWEEN_POINTS) {
-                LatLng mid = getMidPoint(start_point, next_point);
-                lstPoints.add(mid);
+                //LatLng mid = getMidPoint(start_point, next_point);
+                lstPoints.add(next_point);
                 distance = 0;
             }
 

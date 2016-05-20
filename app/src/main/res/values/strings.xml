@@ -48,4 +48,48 @@
         <item>Ana Yolları kullanma</item>
         <item>Feribot kullanma</item>
     </array>
+
+    <string name="select_place_type_title">mekan tipi seçiniz</string>
+
+    <string name="select_place_type_button">Seç</string>
+
+    <array name="arr_place_type_text">
+        <item>Restoran</item>
+        <item>Kafe</item>
+        <item>Sanat Galerisi</item>
+        <item>Sinema</item>
+        <item>Müze</item>
+        <item>Gece Kulübü</item>
+        <item>Cami</item>
+        <item>Kilise</item>
+        <item>Alışveriş Merkezi</item>
+        <item>Park</item>
+        <item>Hayvanat Bahçesi</item>
+        <item>Casino</item>
+        <item>Eğlence Parkı</item>
+        <item>Akvaryum</item>
+        <item>Bowling</item>
+        <item>Stadyum</item>
+        <item>Üniversite</item>
+    </array>
+    <array name="arr_place_type_values">
+        <item>restaurant</item>
+        <item>cafe</item>
+        <item>art_gallery</item>
+        <item>movie_theater</item>
+        <item>museum</item>
+        <item>night_club</item>
+        <item>mosque</item>
+        <item>church</item>
+        <item>shopping_mall</item>
+        <item>park</item>
+        <item>zoo</item>
+        <item>casino</item>
+        <item>amusement_park</item>
+        <item>aquarium</item>
+        <item>bowling_alley</item>
+        <item>stadium</item>
+        <item>university</item>
+    </array>
+
 </resources>
