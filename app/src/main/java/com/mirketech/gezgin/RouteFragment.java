@@ -32,6 +32,7 @@ import com.bowyer.app.fabtoolbar.FabToolbar;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -94,6 +95,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private LatLng destination = null;
     private List<LatLng> lstDirections;
 
+    private boolean isInPlaceStage = false;
 
     //Data
     private List<Marker> lstMarkers;
@@ -306,10 +308,19 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
             isInterrupted = true;
 
-            animateOutNearbyPlacesButton(true);
-            animateOutSearchSuggestions(false);
-            animateInClearButton(true);
-            animateInDestination(true);
+
+            if(isInPlaceStage){
+                animateOutSearchSuggestions(false);
+                animateOutOrigin(true);
+                animateOutDestination(true);
+
+            }else{
+                animateOutSearchSuggestions(false);
+                animateInClearButton(true);
+                animateInDestination(true);
+            }
+
+
 
             return false;
         }
@@ -390,14 +401,12 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
                             String selected_type = getResources().getStringArray(R.array.arr_place_type_values)[which];
                             PlacesManager.getInstance(getActivity()).GetPlacesNearby(lstDirections, selected_type);
+                            animateOutOrigin(true);
+                            animateOutDestination(true);
                         }
                     })
                     .theme(Theme.DARK)
                     .show();
-
-            // TODO implement nearby places !
-
-            //PlacesManager.getInstance(getActivity()).GetPlacesNearby(lstDirections, "");
 
 
         }
@@ -479,11 +488,16 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
             latestMyLocation = loc;
 
-            animateInOrigin(true);
+            if(!isInPlaceStage){
+                animateInOrigin(true);
 
-            if (googleMap != null && !isInterrupted) {
-                MapsHelper.moveCamera(googleMap, loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
+                if (googleMap != null && !isInterrupted) {
+                    MapsHelper.moveCamera(googleMap, loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
+                }
             }
+
+
+
         }
     };
 
@@ -507,6 +521,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     private void clearMap() {
         if (googleMap != null) {
+
+            isInPlaceStage = false;
 
             clearPlaces();
             lstSuggestionsData.clear();
@@ -566,6 +582,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
         mMapView = (MapView) v.findViewById(R.id.mapView);
         mMapView.onCreate(savedInstanceState);
+
 
         mMapView.onResume();// needed to get the map to display immediately
 
@@ -666,6 +683,9 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
             for (int i = 0; i < resultsArr.length(); i++) {
 
+
+
+
                 JSONObject place = resultsArr.getJSONObject(i);
 
                 JSONObject place_loc = place.getJSONObject("geometry").getJSONObject("location");
@@ -683,7 +703,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
                 Marker marker = googleMap.addMarker(new MarkerOptions()
                         .position(pos)
-                        .alpha(0.5F)
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                         .title(place_name));
 
 
@@ -703,7 +723,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private void parseDirectionResponse(GResponse response) {
         try {
             isInterrupted = true;
-
+            isInPlaceStage = true;
 
             lstDirections = DirectionManager.getInstance(getActivity()).ParseDirectionResponse(response);
 

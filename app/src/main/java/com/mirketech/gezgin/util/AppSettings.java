@@ -21,7 +21,7 @@ public class AppSettings {
     public static boolean ROUTE_AVOID_HIGHWAYS                      = false;
     public static boolean ROUTE_AVOID_FERRIES                       = false;
 
-    public static int PLACES_CHECK_RADIUS_METERS                    = 1000;
+    public static int PLACES_CHECK_RADIUS_METERS                    = 2000;
     public static float PLACES_MAX_METERS_BETWEEN_POINTS            = 5000F;
     public static float PLACES_ROUTE_DIVIDE_PERCENT                 = 5F;
 
