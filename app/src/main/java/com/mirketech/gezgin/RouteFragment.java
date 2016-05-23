@@ -724,15 +724,15 @@ public class RouteFragment extends Fragment implements ICommResponse {
                 model.SetBitmapMarker(generator.makeIcon(String.valueOf(model.GetOrder())));
 
 
-//                Marker marker = googleMap.addMarker(new MarkerOptions()
-//                        .position(model.getPosition())
-//                        .icon(BitmapDescriptorFactory.fromBitmap(model.GetBitmapMarker()))
-//                        .title(model.GetTitle()));
+                Marker marker = googleMap.addMarker(new MarkerOptions()
+                        .position(model.getPosition())
+                        .icon(BitmapDescriptorFactory.fromBitmap(model.GetBitmapMarker()))
+                        .title(model.GetTitle()));
 
 
-                //model.SetMarker(marker);
+                model.SetMarker(marker);
 
-                mClusterManager.addItem(model);
+                //mClusterManager.addItem(model);
                 lstPlaces.add(model);
 
             }
