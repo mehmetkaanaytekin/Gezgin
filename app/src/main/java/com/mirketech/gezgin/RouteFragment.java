@@ -42,6 +42,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.ui.IconGenerator;
+import com.mirketech.gezgin.adapters.CustomClusterRenderer;
 import com.mirketech.gezgin.adapters.CustomInfoWinAdapter;
 import com.mirketech.gezgin.adapters.PlacesAdapter;
 import com.mirketech.gezgin.adapters.SuggestionAdapter;
@@ -565,9 +566,9 @@ public class RouteFragment extends Fragment implements ICommResponse {
         placeNumber = 0;
         if (googleMap != null) {
 
-            for (PlaceModel plc : lstPlaces) {
-                plc.GetMarker().remove();
-            }
+//            for (PlaceModel plc : lstPlaces) {
+//                plc.GetMarker().remove();
+//            }
             lstPlaces.clear();
             mClusterManager.clearItems();
         }
@@ -651,6 +652,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
         });
 
         mClusterManager = new ClusterManager<PlaceModel>(getContext(), googleMap);
+        mClusterManager.setRenderer(new CustomClusterRenderer(getContext(),googleMap,mClusterManager));
+
         googleMap.setOnCameraChangeListener(mClusterManager);
 
         MultiMarkerClickListener mlmarker = new MultiMarkerClickListener();
@@ -659,6 +662,9 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
 
         googleMap.setOnMarkerClickListener(mlmarker);
+
+        mClusterManager.getMarkerCollection().setOnInfoWindowAdapter(new CustomInfoWinAdapter(getActivity()));
+        mClusterManager.getClusterMarkerCollection().setOnInfoWindowAdapter(new CustomInfoWinAdapter(getActivity()));
 
 
     }
@@ -718,27 +724,37 @@ public class RouteFragment extends Fragment implements ICommResponse {
                 MarkerOptions mOpt = new MarkerOptions();
                 mOpt.position(model.getPosition());
 
+                for (PlaceModel pl: lstPlaces){
+                    if(pl.getPosition().latitude == model.getPosition().latitude && pl.getPosition().longitude == model.getPosition().longitude){
+                        continue;
+                    }
+                }
+
+
                 placeNumber++;
                 model.SetOrder(placeNumber);
 
                 model.SetBitmapMarker(generator.makeIcon(String.valueOf(model.GetOrder())));
 
 
-                Marker marker = googleMap.addMarker(new MarkerOptions()
-                        .position(model.getPosition())
-                        .icon(BitmapDescriptorFactory.fromBitmap(model.GetBitmapMarker()))
-                        .title(model.GetTitle()));
+//                Marker marker = googleMap.addMarker(new MarkerOptions()
+//                        .position(model.getPosition())
+//                        .icon(BitmapDescriptorFactory.fromBitmap(model.GetBitmapMarker()))
+//                        .title(model.GetTitle()));
+//
+//
+//                model.SetMarker(marker);
 
-
-                model.SetMarker(marker);
-
-                //mClusterManager.addItem(model);
+                mClusterManager.addItem(model);
                 lstPlaces.add(model);
 
             }
 
 
             if (isFinal) {
+
+                mClusterManager.setRenderer(new CustomClusterRenderer(getContext(),googleMap,mClusterManager));
+                mClusterManager.cluster();
 
                 if (placeNumber == 0) {
                     Toast.makeText(getActivity(), R.string.no_places_found, Toast.LENGTH_LONG).show();
