@@ -724,10 +724,15 @@ public class RouteFragment extends Fragment implements ICommResponse {
                 MarkerOptions mOpt = new MarkerOptions();
                 mOpt.position(model.getPosition());
 
+                boolean isContains = false;
                 for (PlaceModel pl: lstPlaces){
                     if(pl.getPosition().latitude == model.getPosition().latitude && pl.getPosition().longitude == model.getPosition().longitude){
-                        continue;
+                        isContains = true;
+                        break;
                     }
+                }
+                if(isContains){
+                    continue;
                 }
 
 
