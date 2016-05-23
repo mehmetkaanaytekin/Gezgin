@@ -3,7 +3,6 @@ package com.mirketech.gezgin;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,7 +22,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -42,14 +40,18 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.ui.IconGenerator;
 import com.mirketech.gezgin.adapters.CustomInfoWinAdapter;
+import com.mirketech.gezgin.adapters.PlacesAdapter;
 import com.mirketech.gezgin.adapters.SuggestionAdapter;
 import com.mirketech.gezgin.comm.CommManager;
 import com.mirketech.gezgin.comm.GResponse;
 import com.mirketech.gezgin.comm.ICommResponse;
 import com.mirketech.gezgin.direction.DirectionManager;
+import com.mirketech.gezgin.listeners.MultiMarkerClickListener;
 import com.mirketech.gezgin.listeners.ViewAnimatorListener;
+import com.mirketech.gezgin.models.PlaceModel;
 import com.mirketech.gezgin.models.SuggestModel;
 import com.mirketech.gezgin.places.PlacesManager;
 import com.mirketech.gezgin.util.AppSettings;
@@ -57,7 +59,6 @@ import com.mirketech.gezgin.util.MapsHelper;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.ListHolder;
 import com.orhanobut.dialogplus.OnItemClickListener;
-
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -105,10 +106,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private List<LatLng> lstDirections;
     private Integer placeNumber = 0;
     private boolean isInPlaceStage = false;
+    ClusterManager<PlaceModel> mClusterManager;
 
     //Data
+    private List<PlaceModel> lstPlaces;
     private List<Marker> lstMarkers;
-    private List<Marker> lstPlaceMarkers;
     private ArrayList<SuggestModel> lstSuggestionsData = new ArrayList<>();
 
 
@@ -220,7 +222,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
     public void onStart() {
         super.onStart();
         lstMarkers = new ArrayList<>();
-        lstPlaceMarkers = new ArrayList<>();
+        lstPlaces = new ArrayList<>();
+
         CommManager.getInstance().SetResponseListener(this);
     }
 
@@ -562,11 +565,11 @@ public class RouteFragment extends Fragment implements ICommResponse {
         placeNumber = 0;
         if (googleMap != null) {
 
-            for (Marker mrk : lstPlaceMarkers) {
-                mrk.remove();
+            for (PlaceModel plc : lstPlaces) {
+                plc.GetMarker().remove();
             }
-            lstPlaceMarkers.clear();
-
+            lstPlaces.clear();
+            mClusterManager.clearItems();
         }
     }
 
@@ -608,7 +611,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
 
         googleMap.setOnMyLocationChangeListener(myLocationChangeListener);
-        googleMap.setOnMarkerClickListener(gMapMarkerClickListener);
+        //googleMap.setOnMarkerClickListener(gMapMarkerClickListener);
         googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -646,6 +649,17 @@ public class RouteFragment extends Fragment implements ICommResponse {
                 return false;
             }
         });
+
+        mClusterManager = new ClusterManager<PlaceModel>(getContext(), googleMap);
+        googleMap.setOnCameraChangeListener(mClusterManager);
+
+        MultiMarkerClickListener mlmarker = new MultiMarkerClickListener();
+        mlmarker.registerListener(mClusterManager);
+        mlmarker.registerListener(gMapMarkerClickListener);
+
+
+        googleMap.setOnMarkerClickListener(mlmarker);
+
 
     }
 
@@ -687,39 +701,39 @@ public class RouteFragment extends Fragment implements ICommResponse {
             JSONObject data = (JSONObject) response.Data;
 
             JSONArray resultsArr = data.getJSONArray("results");
-            IconGenerator generator = new IconGenerator(getActivity());
+            IconGenerator generator = new IconGenerator(getContext());
 
             for (int i = 0; i < resultsArr.length(); i++) {
 
+                PlaceModel model = new PlaceModel();
 
                 JSONObject place = resultsArr.getJSONObject(i);
-
                 JSONObject place_loc = place.getJSONObject("geometry").getJSONObject("location");
 
-                double lat = place_loc.getDouble("lat");
-                double lng = place_loc.getDouble("lng");
-
-                LatLng pos = new LatLng(lat, lng);
-
-                String place_name = place.getString("name");
+                model.SetPosition(new LatLng(place_loc.getDouble("lat"), place_loc.getDouble("lng")));
+                model.SetTitle(place.getString("name"));
+                model.SetPlaceId(place.getString("place_id"));
+                model.SetDesc(place.getString("vicinity"));
 
                 MarkerOptions mOpt = new MarkerOptions();
-                mOpt.position(pos);
+                mOpt.position(model.getPosition());
 
                 placeNumber++;
+                model.SetOrder(placeNumber);
+
+                model.SetBitmapMarker(generator.makeIcon(String.valueOf(model.GetOrder())));
 
 
-                Bitmap bmpIcon = generator.makeIcon(String.valueOf(placeNumber + 1));
-
-                Marker marker = googleMap.addMarker(new MarkerOptions()
-                        .position(pos)
-                        .icon(BitmapDescriptorFactory.fromBitmap(bmpIcon))
-                        //.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                        .title(place_name));
+//                Marker marker = googleMap.addMarker(new MarkerOptions()
+//                        .position(model.getPosition())
+//                        .icon(BitmapDescriptorFactory.fromBitmap(model.GetBitmapMarker()))
+//                        .title(model.GetTitle()));
 
 
-                lstPlaceMarkers.add(marker);
+                //model.SetMarker(marker);
 
+                mClusterManager.addItem(model);
+                lstPlaces.add(model);
 
             }
 
@@ -729,19 +743,20 @@ public class RouteFragment extends Fragment implements ICommResponse {
                 if (placeNumber == 0) {
                     Toast.makeText(getActivity(), R.string.no_places_found, Toast.LENGTH_LONG).show();
                 } else {
-                    //TODO display list of all places found !
-                    String[] places = new String[lstPlaceMarkers.size()];
-                    for (int i = 0; i < lstPlaceMarkers.size(); i++){
-                        places[i] = lstPlaceMarkers.get(i).getTitle();
+
+                    String[] places = new String[lstPlaces.size()];
+                    for (int i = 0; i < lstPlaces.size(); i++) {
+                        places[i] = lstPlaces.get(i).GetTitle();
                     }
-                    ArrayAdapter<String> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, places);
+                    PlacesAdapter adapter = new PlacesAdapter(getContext(), lstPlaces);
 
                     final DialogPlus dialog = DialogPlus.newDialog(getActivity())
                             .setContentHolder(new ListHolder())
                             .setGravity(Gravity.BOTTOM)
                             .setAdapter(adapter)
                             .setOnItemClickListener(new OnItemClickListener() {
-                                @Override public void onItemClick(DialogPlus dialog, Object item, View view, int position) {
+                                @Override
+                                public void onItemClick(DialogPlus dialog, Object item, View view, int position) {
                                     Log.d("DialogPlus", "onItemClick() called with: " + "item = [" +
                                             item + "], position = [" + position + "]");
                                 }
@@ -751,7 +766,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
                             .setExpanded(true)
                             .create();
                     dialog.show();
-
 
 
                 }
