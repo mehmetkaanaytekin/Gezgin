@@ -23,6 +23,6 @@ public class CustomClusterRenderer extends DefaultClusterRenderer<PlaceModel> {
     protected void onBeforeClusterItemRendered(PlaceModel item, MarkerOptions markerOptions) {
         markerOptions.icon(BitmapDescriptorFactory.fromBitmap(item.GetBitmapMarker()));
         markerOptions.title(item.GetTitle());
-        super.onBeforeClusterItemRendered(item, markerOptions);
+        //super.onBeforeClusterItemRendered(item, markerOptions);
     }
 }
