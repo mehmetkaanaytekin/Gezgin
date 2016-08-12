@@ -106,13 +106,13 @@ public class MainActivity extends AppCompatActivity
                 fragment = new RouteFragment();
                 break;
             case R.id.nav_manage:
-                fragment = null; // new LoginFragment();
+                fragment = null;
                 break;
             case R.id.nav_login:
-                fragment = null;
+                fragment = new LoginFragment();
                 break;
             case R.id.nav_greet:
-                fragment = null;
+                fragment = new GreetFragment();
                 break;
         }
 
