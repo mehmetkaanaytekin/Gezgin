@@ -48,6 +48,7 @@ public class PlacesManager {
     private Context appContext;
     private static PlacesManager ourInstance = null;
 
+
     public static synchronized PlacesManager getInstance(Context _context) {
         if (ourInstance != null) {
             return ourInstance;
@@ -73,7 +74,7 @@ public class PlacesManager {
         JsonObjectRequest myReq = new JsonObjectRequest(Request.Method.POST,
                 PreparePlacesAutoCompleteURL(input),
                 null,
-                createReqSuccessListener(GResponse.RequestTypes.Places_Autocomplete),
+                createReqSuccessListener(GResponse.RequestTypes.Places_Autocomplete, false),
                 createReqErrorListener(GResponse.RequestTypes.Places_Autocomplete));
 
         queue.add(myReq);
@@ -90,7 +91,7 @@ public class PlacesManager {
         JsonObjectRequest myReq = new JsonObjectRequest(Request.Method.POST,
                 PreparePlacesDetailsURL(place_id),
                 null,
-                createReqSuccessListener(reqType),
+                createReqSuccessListener(reqType, false),
                 createReqErrorListener(reqType));
 
         queue.add(myReq);
@@ -160,6 +161,7 @@ public class PlacesManager {
 
             for (int i = 0; i < lstPoints.size(); i++) {
 
+                boolean isfinal = (i + 1) == lstPoints.size() ? true : false;
 
                 VolleyManager vManager = VolleyManager.getInstance(appContext);
                 RequestQueue queue = vManager.getRequestQueue();
@@ -168,7 +170,7 @@ public class PlacesManager {
                 JsonObjectRequest myReq = new JsonObjectRequest(Request.Method.POST,
                         PrepareNearbyPlacesURL(lstPoints.get(i), place_type),
                         null,
-                        createReqSuccessListener(reqType),
+                        createReqSuccessListener(reqType, isfinal),
                         createReqErrorListener(reqType));
 
                 queue.add(myReq);
@@ -317,14 +319,20 @@ public class PlacesManager {
     }
 
 
-    private Response.Listener<JSONObject> createReqSuccessListener(final GResponse.RequestTypes _type) {
+    private Response.Listener<JSONObject> createReqSuccessListener(final GResponse.RequestTypes _type, final boolean isfinal) {
         return new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 Log.d(TAG, "response : " + response);
 
-                GResponse gResp = new GResponse(_type, response, GResponse.ResponseStatus.Success);
-                CommManager.getInstance().TriggerResponse(gResp);
+
+                if (isfinal) {
+                    GResponse gResp = new GResponse(_type, response, GResponse.ResponseStatus.SuccessfullyCompleted);
+                    CommManager.getInstance().TriggerResponse(gResp);
+                } else {
+                    GResponse gResp = new GResponse(_type, response, GResponse.ResponseStatus.Success);
+                    CommManager.getInstance().TriggerResponse(gResp);
+                }
 
             }
         };

@@ -92,4 +92,5 @@
         <item>university</item>
     </array>
 
+    <string name="no_places_found">Seçili kriterlere göre mekan bulunamadı.</string>
 </resources>

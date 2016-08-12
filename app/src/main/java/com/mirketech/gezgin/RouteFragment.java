@@ -13,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,6 +26,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.afollestad.materialdialogs.Theme;
@@ -32,22 +34,32 @@ import com.bowyer.app.fabtoolbar.FabToolbar;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.clustering.ClusterManager;
+import com.google.maps.android.ui.IconGenerator;
+import com.mirketech.gezgin.adapters.CustomClusterRenderer;
 import com.mirketech.gezgin.adapters.CustomInfoWinAdapter;
+import com.mirketech.gezgin.adapters.PlacesAdapter;
 import com.mirketech.gezgin.adapters.SuggestionAdapter;
 import com.mirketech.gezgin.comm.CommManager;
 import com.mirketech.gezgin.comm.GResponse;
 import com.mirketech.gezgin.comm.ICommResponse;
 import com.mirketech.gezgin.direction.DirectionManager;
+import com.mirketech.gezgin.listeners.MultiMarkerClickListener;
 import com.mirketech.gezgin.listeners.ViewAnimatorListener;
+import com.mirketech.gezgin.models.PlaceModel;
 import com.mirketech.gezgin.models.SuggestModel;
 import com.mirketech.gezgin.places.PlacesManager;
 import com.mirketech.gezgin.util.AppSettings;
 import com.mirketech.gezgin.util.MapsHelper;
+import com.orhanobut.dialogplus.DialogPlus;
+import com.orhanobut.dialogplus.ListHolder;
+import com.orhanobut.dialogplus.OnItemClickListener;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -93,11 +105,13 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private LatLng origin = null;
     private LatLng destination = null;
     private List<LatLng> lstDirections;
-
+    private Integer placeNumber = 0;
+    private boolean isInPlaceStage = false;
+    ClusterManager<PlaceModel> mClusterManager;
 
     //Data
+    private List<PlaceModel> lstPlaces;
     private List<Marker> lstMarkers;
-    private List<Marker> lstPlaceMarkers;
     private ArrayList<SuggestModel> lstSuggestionsData = new ArrayList<>();
 
 
@@ -209,7 +223,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
     public void onStart() {
         super.onStart();
         lstMarkers = new ArrayList<>();
-        lstPlaceMarkers = new ArrayList<>();
+        lstPlaces = new ArrayList<>();
+
         CommManager.getInstance().SetResponseListener(this);
     }
 
@@ -306,10 +321,18 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
             isInterrupted = true;
 
-            animateOutNearbyPlacesButton(true);
-            animateOutSearchSuggestions(false);
-            animateInClearButton(true);
-            animateInDestination(true);
+
+            if (isInPlaceStage) {
+                animateOutSearchSuggestions(false);
+                animateOutOrigin(true);
+                animateOutDestination(true);
+
+            } else {
+                animateOutSearchSuggestions(false);
+                animateInClearButton(true);
+                animateInDestination(true);
+            }
+
 
             return false;
         }
@@ -390,14 +413,12 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
                             String selected_type = getResources().getStringArray(R.array.arr_place_type_values)[which];
                             PlacesManager.getInstance(getActivity()).GetPlacesNearby(lstDirections, selected_type);
+                            animateOutOrigin(true);
+                            animateOutDestination(true);
                         }
                     })
                     .theme(Theme.DARK)
                     .show();
-
-            // TODO implement nearby places !
-
-            //PlacesManager.getInstance(getActivity()).GetPlacesNearby(lstDirections, "");
 
 
         }
@@ -479,11 +500,15 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
             latestMyLocation = loc;
 
-            animateInOrigin(true);
+            if (!isInPlaceStage) {
+                animateInOrigin(true);
 
-            if (googleMap != null && !isInterrupted) {
-                MapsHelper.moveCamera(googleMap, loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
+                if (googleMap != null && !isInterrupted) {
+                    MapsHelper.moveCamera(googleMap, loc, AppSettings.CAMERA_DEFAULT_MY_LOCATION_ZOOM_LEVEL);
+                }
             }
+
+
         }
     };
 
@@ -508,6 +533,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private void clearMap() {
         if (googleMap != null) {
 
+            isInPlaceStage = false;
+
             clearPlaces();
             lstSuggestionsData.clear();
             googleMap.clear();
@@ -529,20 +556,21 @@ public class RouteFragment extends Fragment implements ICommResponse {
             }
 
 
-
             animateOutNearbyPlacesButton(true);
             animateOutActionButton(true);
         }
     }
 
     private void clearPlaces() {
+
+        placeNumber = 0;
         if (googleMap != null) {
 
-            for (Marker mrk : lstPlaceMarkers) {
-                mrk.remove();
-            }
-            lstPlaceMarkers.clear();
-
+//            for (PlaceModel plc : lstPlaces) {
+//                plc.GetMarker().remove();
+//            }
+            lstPlaces.clear();
+            mClusterManager.clearItems();
         }
     }
 
@@ -567,6 +595,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
         mMapView = (MapView) v.findViewById(R.id.mapView);
         mMapView.onCreate(savedInstanceState);
 
+
         mMapView.onResume();// needed to get the map to display immediately
 
 
@@ -583,7 +612,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
 
         googleMap.setOnMyLocationChangeListener(myLocationChangeListener);
-        googleMap.setOnMarkerClickListener(gMapMarkerClickListener);
+        //googleMap.setOnMarkerClickListener(gMapMarkerClickListener);
         googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -622,13 +651,29 @@ public class RouteFragment extends Fragment implements ICommResponse {
             }
         });
 
+        mClusterManager = new ClusterManager<PlaceModel>(getContext(), googleMap);
+        mClusterManager.setRenderer(new CustomClusterRenderer(getContext(),googleMap,mClusterManager));
+
+        googleMap.setOnCameraChangeListener(mClusterManager);
+
+        MultiMarkerClickListener mlmarker = new MultiMarkerClickListener();
+        mlmarker.registerListener(mClusterManager);
+        mlmarker.registerListener(gMapMarkerClickListener);
+
+
+        googleMap.setOnMarkerClickListener(mlmarker);
+
+        mClusterManager.getMarkerCollection().setOnInfoWindowAdapter(new CustomInfoWinAdapter(getActivity()));
+        mClusterManager.getClusterMarkerCollection().setOnInfoWindowAdapter(new CustomInfoWinAdapter(getActivity()));
+
+
     }
 
 
     @Override
     public void onResponse(GResponse response) {
         Log.d(TAG, "response received.");
-        if (!response.Status.equals(GResponse.ResponseStatus.Success)) {
+        if (!response.Status.equals(GResponse.ResponseStatus.Success) && !response.Status.equals(GResponse.ResponseStatus.SuccessfullyCompleted)) {
             Log.e(TAG, ".onResponse Status : " + response.Status);
             return;
         }
@@ -650,46 +695,101 @@ public class RouteFragment extends Fragment implements ICommResponse {
         }
         if (response.RequestType.equals(GResponse.RequestTypes.Places_NearbySearch)) {
 
-            parsePlacesNearbySearchResponse(response);
+            parsePlacesNearbySearchResponse(response, response.Status.equals(GResponse.ResponseStatus.SuccessfullyCompleted));
 
         }
 
 
     }
 
-    private void parsePlacesNearbySearchResponse(GResponse response) {
+    private void parsePlacesNearbySearchResponse(GResponse response, boolean isFinal) {
         try {
             JSONObject data = (JSONObject) response.Data;
 
             JSONArray resultsArr = data.getJSONArray("results");
-
+            IconGenerator generator = new IconGenerator(getContext());
 
             for (int i = 0; i < resultsArr.length(); i++) {
 
-                JSONObject place = resultsArr.getJSONObject(i);
+                PlaceModel model = new PlaceModel();
 
+                JSONObject place = resultsArr.getJSONObject(i);
                 JSONObject place_loc = place.getJSONObject("geometry").getJSONObject("location");
 
-                double lat = place_loc.getDouble("lat");
-                double lng = place_loc.getDouble("lng");
-
-                LatLng pos = new LatLng(lat, lng);
-
-                String place_name = place.getString("name");
+                model.SetPosition(new LatLng(place_loc.getDouble("lat"), place_loc.getDouble("lng")));
+                model.SetTitle(place.getString("name"));
+                model.SetPlaceId(place.getString("place_id"));
+                model.SetDesc(place.getString("vicinity"));
 
                 MarkerOptions mOpt = new MarkerOptions();
-                mOpt.position(pos);
+                mOpt.position(model.getPosition());
+
+                boolean isContains = false;
+                for (PlaceModel pl: lstPlaces){
+                    if(pl.getPosition().latitude == model.getPosition().latitude && pl.getPosition().longitude == model.getPosition().longitude){
+                        isContains = true;
+                        break;
+                    }
+                }
+                if(isContains){
+                    continue;
+                }
 
 
-                Marker marker = googleMap.addMarker(new MarkerOptions()
-                        .position(pos)
-                        .alpha(0.5F)
-                        .title(place_name));
+                placeNumber++;
+                model.SetOrder(placeNumber);
+
+                model.SetBitmapMarker(generator.makeIcon(String.valueOf(model.GetOrder())));
 
 
-                lstPlaceMarkers.add(marker);
+//                Marker marker = googleMap.addMarker(new MarkerOptions()
+//                        .position(model.getPosition())
+//                        .icon(BitmapDescriptorFactory.fromBitmap(model.GetBitmapMarker()))
+//                        .title(model.GetTitle()));
+//
+//
+//                model.SetMarker(marker);
+
+                mClusterManager.addItem(model);
+                lstPlaces.add(model);
+
+            }
 
 
+            if (isFinal) {
+
+                mClusterManager.setRenderer(new CustomClusterRenderer(getContext(),googleMap,mClusterManager));
+                mClusterManager.cluster();
+
+                if (placeNumber == 0) {
+                    Toast.makeText(getActivity(), R.string.no_places_found, Toast.LENGTH_LONG).show();
+                } else {
+
+                    String[] places = new String[lstPlaces.size()];
+                    for (int i = 0; i < lstPlaces.size(); i++) {
+                        places[i] = lstPlaces.get(i).GetTitle();
+                    }
+                    PlacesAdapter adapter = new PlacesAdapter(getContext(), lstPlaces);
+
+                    final DialogPlus dialog = DialogPlus.newDialog(getActivity())
+                            .setContentHolder(new ListHolder())
+                            .setGravity(Gravity.BOTTOM)
+                            .setAdapter(adapter)
+                            .setOnItemClickListener(new OnItemClickListener() {
+                                @Override
+                                public void onItemClick(DialogPlus dialog, Object item, View view, int position) {
+                                    Log.d("DialogPlus", "onItemClick() called with: " + "item = [" +
+                                            item + "], position = [" + position + "]");
+                                }
+                            })
+
+                            .setCancelable(true)
+                            .setExpanded(true)
+                            .create();
+                    dialog.show();
+
+
+                }
             }
 
 
@@ -703,7 +803,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private void parseDirectionResponse(GResponse response) {
         try {
             isInterrupted = true;
-
+            isInPlaceStage = true;
 
             lstDirections = DirectionManager.getInstance(getActivity()).ParseDirectionResponse(response);
 
