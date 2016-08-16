@@ -17,7 +17,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener , RouteFragment.OnFragmentInteractionListener {
+        implements NavigationView.OnNavigationItemSelectedListener , RouteFragment.OnFragmentInteractionListener , GreetFragment.OnFragmentInteractionListener ,LoginFragment.OnFragmentInteractionListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
