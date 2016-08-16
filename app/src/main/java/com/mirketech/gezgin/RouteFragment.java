@@ -93,7 +93,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private ImageButton btnRouteSettings;
     private ImageButton btnCreateRoute;
     private SmoothProgressBar sProgBar;
-
+    private MenuItem searchItem;
 
     //Listeners
     private OnFragmentInteractionListener mListener;
@@ -147,7 +147,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
         getActivity().getMenuInflater().inflate(R.menu.route_menu, menu);
 
 
-        MenuItem searchItem = menu.findItem(R.id.route_menu_search);
+        searchItem = menu.findItem(R.id.route_menu_search);
         SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -158,7 +158,6 @@ public class RouteFragment extends Fragment implements ICommResponse {
                 animateInClearButton(true);
                 animateInSearchSuggestions(true);
                 PlacesManager.getInstance(getActivity()).GetPlacesAutoComplete(query.trim());
-
 
                 return false;
             }
@@ -410,6 +409,14 @@ public class RouteFragment extends Fragment implements ICommResponse {
                     .itemsCallback(new MaterialDialog.ListCallback() {
                         @Override
                         public void onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
+
+                            googleMap.clear();
+                            lstMarkers.clear();
+                            if(searchItem.isActionViewExpanded()){
+                                searchItem.collapseActionView();
+                            }
+
+                            sProgBar.setVisibility(View.VISIBLE);
 
                             String selected_type = getResources().getStringArray(R.array.arr_place_type_values)[which];
                             PlacesManager.getInstance(getActivity()).GetPlacesNearby(lstDirections, selected_type);
@@ -707,7 +714,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
             JSONObject data = (JSONObject) response.Data;
 
             JSONArray resultsArr = data.getJSONArray("results");
-            IconGenerator generator = new IconGenerator(getContext());
+            IconGenerator generator = new IconGenerator(RouteFragment.this.getContext());
 
             for (int i = 0; i < resultsArr.length(); i++) {
 
@@ -790,6 +797,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
 
                 }
+
+                sProgBar.setVisibility(View.GONE);
             }
 
 

@@ -157,6 +157,8 @@ public class PlacesManager {
             start_point = next_point;
         }
 
+        lstPoints.add(destination);
+
         if (lstPoints.size() > 0) {
 
             for (int i = 0; i < lstPoints.size(); i++) {

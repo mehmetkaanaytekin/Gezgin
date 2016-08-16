@@ -18,13 +18,6 @@
             android:src="@android:drawable/ic_menu_myplaces"
             android:text="Başlangıç" />
 
-        <ImageButton
-            android:id="@+id/btnCustomDest"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@android:drawable/ic_menu_directions"
-            android:text="Bitiş" />
 
     </LinearLayout>
 

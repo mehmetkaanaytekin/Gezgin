@@ -20,7 +20,7 @@ public class CustomInfoWinAdapter implements GoogleMap.InfoWindowAdapter {
     private Activity activity;
 
     private ImageButton btnCustomOrigin;
-    private ImageButton btnCustomDest;
+    //private ImageButton btnCustomDest;
 
     public CustomInfoWinAdapter(Activity act){
 
@@ -38,7 +38,7 @@ public class CustomInfoWinAdapter implements GoogleMap.InfoWindowAdapter {
 
         TextView txtCustomInfo = (TextView)myContentsView.findViewById(R.id.txtCustomInfo);
         btnCustomOrigin = (ImageButton)myContentsView.findViewById(R.id.btnCustomOrigin);
-        btnCustomDest = (ImageButton)myContentsView.findViewById(R.id.btnCustomDest);
+        //btnCustomDest = (ImageButton)myContentsView.findViewById(R.id.btnCustomDest);
         txtCustomInfo.setText(marker.getTitle());
 
         btnCustomOrigin.setOnClickListener(new View.OnClickListener() {
@@ -47,12 +47,12 @@ public class CustomInfoWinAdapter implements GoogleMap.InfoWindowAdapter {
                 Log.d(TAG,"btnCustomOrigin clicked.");
             }
         });
-        btnCustomDest.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG,"btnCustomDest clicked.");
-            }
-        });
+//        btnCustomDest.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Log.d(TAG,"btnCustomDest clicked.");
+//            }
+//        });
 
 
         return myContentsView;
