@@ -59,6 +59,7 @@ import com.mirketech.gezgin.util.AppSettings;
 import com.mirketech.gezgin.util.MapsHelper;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.ListHolder;
+import com.orhanobut.dialogplus.OnDismissListener;
 import com.orhanobut.dialogplus.OnItemClickListener;
 
 import org.json.JSONArray;
@@ -87,6 +88,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private FloatingActionButton mFabOrigin;
     private FloatingActionButton mFabDest;
     private FloatingActionButton mFabNearbyPlaces;
+    private FloatingActionButton mFabPlaceDialog;
     private TextView txtOrigin;
     private TextView txtDest;
     private FabToolbar mFabToolbar;
@@ -107,7 +109,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
     private List<LatLng> lstDirections;
     private Integer placeNumber = 0;
     private boolean isInPlaceStage = false;
-    ClusterManager<PlaceModel> mClusterManager;
+    private ClusterManager<PlaceModel> mClusterManager;
+    private DialogPlus PlacesDialog;
 
     //Data
     private List<PlaceModel> lstPlaces;
@@ -246,6 +249,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
         mFabAction = (FloatingActionButton) v.findViewById(R.id.fabAction);
         mFabClear = (FloatingActionButton) v.findViewById(R.id.fabClear);
         mFabNearbyPlaces = (FloatingActionButton) v.findViewById(R.id.fabNearbyPlaces);
+        mFabPlaceDialog = (FloatingActionButton) v.findViewById(R.id.fabPlaceDialog);
         linlayOrigin = (LinearLayout) v.findViewById(R.id.linlayOrigin);
         linlayDest = (LinearLayout) v.findViewById(R.id.linlayDest);
         mFabOrigin = (FloatingActionButton) v.findViewById(R.id.fabOrigin);
@@ -257,6 +261,8 @@ public class RouteFragment extends Fragment implements ICommResponse {
         txtOrigin.setText(getString(R.string.my_location));
         txtDest.setText("");
 
+
+        mFabPlaceDialog.setOnClickListener(fabPlaceDialogClickListener);
 
         mFabNearbyPlaces.setOnClickListener(fabNearbyPlacesClickListener);
 
@@ -410,7 +416,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
                         @Override
                         public void onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
 
-                            googleMap.clear();
+                            //googleMap.clear();
                             lstMarkers.clear();
                             if(searchItem.isActionViewExpanded()){
                                 searchItem.collapseActionView();
@@ -431,6 +437,16 @@ public class RouteFragment extends Fragment implements ICommResponse {
         }
     };
 
+    private View.OnClickListener fabPlaceDialogClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if(PlacesDialog != null){
+                animateOutPlaceDialogButton(true);
+                PlacesDialog.show();
+
+            }
+        }
+    };
 
     private View.OnClickListener fabClearClickListener = new View.OnClickListener() {
         @Override
@@ -778,7 +794,7 @@ public class RouteFragment extends Fragment implements ICommResponse {
                     }
                     PlacesAdapter adapter = new PlacesAdapter(getContext(), lstPlaces);
 
-                    final DialogPlus dialog = DialogPlus.newDialog(getActivity())
+                    PlacesDialog = DialogPlus.newDialog(getActivity())
                             .setContentHolder(new ListHolder())
                             .setGravity(Gravity.BOTTOM)
                             .setAdapter(adapter)
@@ -791,9 +807,16 @@ public class RouteFragment extends Fragment implements ICommResponse {
                             })
 
                             .setCancelable(true)
-                            .setExpanded(true)
+                            .setExpanded(true,200)
+                            .setOnDismissListener(new OnDismissListener() {
+                                @Override
+                                public void onDismiss(DialogPlus dialog) {
+                                    animateInPlaceDialogButton(true);
+                                }
+                            })
                             .create();
-                    dialog.show();
+                    PlacesDialog.show();
+
 
 
                 }
@@ -1037,5 +1060,21 @@ public class RouteFragment extends Fragment implements ICommResponse {
 
     }
 
+    private void animateInPlaceDialogButton(final boolean show){
+        if (!show) {
+
+            mFabPlaceDialog.setY(mMapView.getHeight() + 50 + mFabPlaceDialog.getHeight());
+            mFabPlaceDialog.animate().translationY(0).setListener(new ViewAnimatorListener(false, show, mFabPlaceDialog));
+        } else {
+            if (mFabPlaceDialog.getVisibility() == View.GONE) {
+                mFabPlaceDialog.setY(mMapView.getHeight() + 50 + mFabPlaceDialog.getHeight());
+                mFabPlaceDialog.animate().translationY(0).setListener(new ViewAnimatorListener(false, show, mFabPlaceDialog));
+            }
+        }
+    }
+
+    private void animateOutPlaceDialogButton(final boolean hide){
+        mFabPlaceDialog.animate().translationY(50 + mFabPlaceDialog.getHeight()).setListener(new ViewAnimatorListener(hide, false, mFabPlaceDialog));
+    }
 
 }
